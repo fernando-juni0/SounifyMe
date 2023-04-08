@@ -67,7 +67,7 @@ const functions = require('./functions');
 
 //TODO PAGES
 app.get('/',(req,res)=>{
-
+    res.render('index')
 })
 
 
