@@ -1,5 +1,5 @@
 <div align="center" id="top"> 
-  <img src="./.github/app.gif" alt="Sounifyme" />
+  <img src="./.github/readmeBanner.png" alt="Sounifyme" />
 
   &#xa0;
 
