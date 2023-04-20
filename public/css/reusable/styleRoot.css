@@ -20,27 +20,22 @@
 }
 
 :root{
-    --header-stack-color: #000000;
-    --secundary-color-header: #2F2F2F;
-    --main-background: #262626;
-    --text-gray-color-primary: #D7D7D7;
-    --text-gray-color-secundary: rgba(215, 215, 215, 45%);
-    --color-secundary: ;
+    --primary-color: #000000;
+    --secundary-color: #2F2F2F;
+    --main-color-transparent: rgba(40, 40, 40, 70%);
+    --main-color-puple: #915CDF;
+    --secundary-color-puple: #AB94E9;
+    --purpple-strong-color:#7824D5;
+    --purpple-low-color:#C5CDF4;
+    --text-gray-color-primary: #EAEAEA;
+    --text-gray-color-secundary: #B8B8B8;
     --color-text-primary: #fff;
     --border-color: rgba(113, 113, 113, 50%);
     --color-fill: #dddddd;
 } 
 
 [data-theme="light"]{
-    --header-stack-color: #c7c7c7ef;
-    --secundary-color-header: #e6e6e6b7;
-    --main-background: #f5f5f5;
-    --text-gray-color-primary: #353535;
-    --text-gray-color-secundary: rgba(46, 46, 46, 0.45);
-    --color-secundary: ;
-    --color-text-primary: #000000;
-    --border-color: rgba(27, 27, 27, 0.753);
-    --color-fill: #000000;
+
 }
 
 path{
