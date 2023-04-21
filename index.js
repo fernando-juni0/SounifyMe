@@ -70,7 +70,9 @@ app.get('/',(req,res)=>{
     res.render('index')
 })
 
-
+app.get('/login',(req,res)=>{
+    res.render('login')
+})
 
 //TODO AUTH LOGIN
 app.get('/logout',(req,res)=>{
