@@ -1,0 +1,134 @@
+header{
+    overflow: auto;
+    overflow-x: hidden;
+    position: fixed;
+    left: 0;
+    height: 100vh;
+    width: 15em;
+    background-color: var(--secundary-color);
+}
+#header-containner{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.linha{
+    width: 100%;
+    border-bottom: 1px solid var(--boder-color-primary);
+}
+#top-header-content{
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    margin-top: 0.5em;
+    padding: 1em;
+    
+}
+#logoBanner img{
+    width: 10em;
+}
+.svg-icons-header{
+    width: 1.5em;
+}
+.pathColor1{
+    fill: var(--color-fill);
+}
+.pathColor2{
+    fill: var(--color-fill2);
+}
+.main-nav-header{
+    padding: 0.6em 0 0.6em 0;
+}
+.main-nav-header ul{
+    list-style: none;
+    padding: 0.8em;
+}
+.main-nav-header ul li{
+    display: flex;
+    align-items: center;
+}
+.main-nav-header ul li:nth-child(n+2){
+    margin-top: 0.6em;
+}
+.main-nav-header ul li a{
+    text-align: center;
+    padding: 0.8em;
+    display: flex;
+    border-radius: 20em;
+    width: 100%;
+    transition: 0.6s;
+}
+.main-nav-header ul li a:hover{
+    background-color: var(--primary-lite-color);
+    transition: 0.6s;
+}
+.indexSelected{
+    color: var(--secundary-color-puple); 
+    
+}
+.indexSelected svg path,
+.indexSelected .pathColor1{
+    fill: var(--secundary-color-puple);
+}
+
+.main-nav-header .header-text-links{
+    font: 500 1.2em 'Raleway', sans-serif;
+    margin-left: 0.8em;
+    margin-top: 0.1em;
+}
+.header-title-containner{
+    margin-top: 0.6em;
+    width: 100%;
+    text-align: center;
+}
+.header-title{
+    color: var(--color-text-primary) ;
+    font: 800 1.6em 'Inter', sans-serif;
+}
+#mini-perfil-header-containner{
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    width: 100%;
+    height: 100%;
+    padding: 0.8em;
+}
+#mini-perfil-header-content{
+    width: 100%;
+    padding: 0.4em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--secundary-lite-color);
+    border-radius: 20em;
+}
+#profile-image,
+#displayName,
+#miniperfil-config-button{
+    width: fit-content;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#profile-image img{
+    width: 2.6em;
+    border-radius: 20em;
+}
+#displayName{
+    margin-left: 0.8em;
+    margin-right: 0.8em;
+}
+#displayName span{
+    color: var(--text-gray-color-primary);
+    font: normal 1.2em 'Ubuntu', sans-serif;;
+}
+#miniperfil-config-button{
+    margin-right: 0.2em;
+}
+#miniperfil-config-button svg{
+    width: 1.2em;
+}
