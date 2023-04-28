@@ -65,7 +65,9 @@ body,html{
 img,br,a{
     user-select: none;
 }
-
+ul,ol{
+    list-style: none;
+}
 img{
     -webkit-user-drag: none;
 }

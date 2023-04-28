@@ -43,7 +43,7 @@ header{
     padding: 0.6em 0 0.6em 0;
 }
 .main-nav-header ul{
-    list-style: none;
+    
     padding: 0.8em;
 }
 .main-nav-header ul li{
@@ -104,6 +104,10 @@ header{
     align-items: center;
     background-color: var(--secundary-lite-color);
     border-radius: 20em;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-drag: none;
+    margin-bottom: 0.4em;
 }
 #profile-image,
 #displayName,
@@ -131,4 +135,77 @@ header{
 }
 #miniperfil-config-button svg{
     width: 1.2em;
+}
+#mini-perfil-options-containner{
+    top: 100%;
+    position: fixed;
+    display: flex;
+    justify-content: start;
+    align-items: end;
+    transition: 1s;
+}
+.optionsOpen{
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+.mini-perfil-options-popup{
+    z-index: 100;
+    position: fixed;
+    width: 12em;
+    border-radius: 1em;
+    height: 12em;
+    background-color: var(--tertiary-color);
+    margin-bottom: 6em;
+    margin-left: 1.65em;
+    -webkit-box-shadow: 0px 0px 8px 0px var(--boder-color-primary);
+    -moz-box-shadow: 0px 0px 8px 0px var(--boder-color-primary);
+    box-shadow: 0px 0px 8px 0px var(--boder-color-primary);
+    user-select: none;
+    -webkit-user-drag: none;
+    transform: scale(0);
+    opacity: 0;
+    transition: all 0.6s ease-in-out;
+}
+.mini-perfil-options-popup path{
+    fill: var(--color-fill);
+}
+
+.mini-perfil-options-popup nav{
+    padding: 1em;
+    padding-left: 0;
+    width: 100%;
+    height: 100%;
+}
+.mini-perfil-options-popup nav ul{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-left: 0.5em;
+}
+.mini-perfil-options-popup nav ul li{
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    height: max-content;
+    align-items: center;
+    padding: 0.5em;
+    border-radius: 10px;
+    transition: 0.6s;
+    cursor: pointer;
+}
+.mini-perfil-options-popup nav ul li:hover{
+    background-color: var(--primary-lite-color);
+    transition: 0.6s;
+}
+.mini-perfil-options-popup svg{
+    width: 1.2em;
+}
+.mini-perfil-options-popup span{
+    color: var(--text-gray-color-primary);
+    font: 600 1em 'Inter', sans-serif;
+    margin-left: 0.6em;
+    white-space: nowrap;
 }
