@@ -1,4 +1,5 @@
 //TODO-------------importes------------
+
 const express = require('express')
 const fs = require('fs');
 const bodyParser = require('body-parser');
@@ -7,6 +8,9 @@ const path = require('path');
 const multer = require('multer')
 const io = require('socket.io')
 const cookieParser = require("cookie-parser");
+const configs = require('./config/index-config')
+const dropbox = require('./config/dropbox-config')
+
 
 //TODO------------Configs--------------
 const app = express();
@@ -17,18 +21,16 @@ require('dotenv').config()
 app.use(cookieParser());
 
 
-app.use(session({
-    secret: process.env.SECRET, 
-    resave: false, 
-    saveUninitialized: true,
-}))
+app.use(session(configs.session))
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json())
 app.use(express.static('views'));
 app.use(express.static('public'));
 app.use(express.static('uploads'));
+app.use(express.static('src'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'src')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs');
@@ -54,18 +56,33 @@ const upload = multer({ storage });
 
 
 
+
+
+
 //TODO-------------Banco de dados-------------
 
-const dados = require('./DataBase/models');
+
+
+const dados = require('./Firebase/models');
+
 
 
 //TODO----------------Funções--------------------
+
+
+
 const functions = require('./functions');
+
 
 
 //TODO-----------------GET--------------------
 
+
+
 //TODO PAGES
+
+
+
 app.get('/',(req,res)=>{
     res.render('index')
 })
@@ -74,7 +91,11 @@ app.get('/login',(req,res)=>{
     res.render('login')
 })
 
+
+
+
 //TODO AUTH LOGIN
+
 app.get('/logout',(req,res)=>{
     const sessionID = req.session.id;
     req.sessionStore.destroy(sessionID, (err) => {
@@ -98,7 +119,6 @@ app.get('/logout',(req,res)=>{
 
 
 //TODO SERVER
-const port = process.env.PORT || 80
-app.listen(port,()=>{
-    console.log(`Servidor rodando na porta ${port}` );
+app.listen(configs.port,()=>{
+    console.log(`Servidor rodando na porta ${configs.port}` );
 });

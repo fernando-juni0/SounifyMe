@@ -1,3 +1,10 @@
+:root{
+    --login-background-color: rgb(40, 40, 40,0.7);
+}
+[data-theme="light"]{
+    --login-background-color: rgba(255, 255, 255, 0.7);
+}
+
 body{
     background-color: #AB94E9;
 }

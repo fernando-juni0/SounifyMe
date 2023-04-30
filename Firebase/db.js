@@ -3,7 +3,7 @@ const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestor
 var admin = require("firebase-admin");
 
 
-var serviceAccount = require('../config/clone-68fd8-firebase-adminsdk-wip76-11748d9022.json')
+var serviceAccount = require('../config/index-config').serviceAccount
 
 
 

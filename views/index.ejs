@@ -5,18 +5,8 @@
     <title>SounifyMe</title>
 </head>
 <body>
-    test
-    <form action="https://formspree.io/f/mnqylqka" method="POST">
-    <label>
-        Your email:
-        <input type="email" name="email">
-    </label>
-    <label>
-        Your message:
-        <textarea name="message"></textarea>
-    </label>
-    <!-- your other form fields go here -->
-    <button type="submit">Send</button>
+    <%- include('./reusable/header.ejs',{banda:true, index:0,perfil:{nome:'TEst123',profileImg:'../public/img/exempleImg.jpg'} }) %>
+    <%- include('./reusable/script.ejs') %>
 </form>
 </body>
 </html>
