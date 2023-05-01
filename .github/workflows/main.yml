@@ -17,4 +17,4 @@ jobs:
         server: ${{ secrets.ftp_host }}
         username: ${{ secrets.ftp_name }}
         password: ${{ secrets.ftp_password }}
-        server-dir: /sounifyme
+        server-dir: /sounifyme/
