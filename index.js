@@ -66,7 +66,7 @@ const upload = multer({ storage });
 const dados = require('./Firebase/models');
 
 
-
+dados.findAll({colecao:'contas'}).then((res)=>{console.log(res);})
 //TODO----------------Funções--------------------
 
 
@@ -83,7 +83,7 @@ const functions = require('./functions');
 
 
 
-app.get('/',(req,res)=>{
+app.get('/home',(req,res)=>{
     res.render('index')
 })
 
@@ -91,7 +91,11 @@ app.get('/login',(req,res)=>{
     res.render('login')
 })
 
+//TODO-----------------POST--------------------
 
+app.post('/auth/Google',(req,res)=>{
+    console.log(req.body);
+})
 
 
 //TODO AUTH LOGIN
@@ -113,8 +117,9 @@ app.get('/logout',(req,res)=>{
 
 //TODO-----------POST CONFIGS-----------------
 
-
-
+app.post('/firebaseApp',(req,res)=>{
+    res.send(require('./config/index-config').firebaseConfig)
+})
 
 
 

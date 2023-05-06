@@ -4,8 +4,14 @@
     <%- include('./reusable/head.ejs') %>
     <link rel="stylesheet" href="../public/css/login.css">
     <title>Login - SounifyMe</title>
+    
 </head>
 <body>
+    <%- include('./reusable/googlePopup.ejs') %>
+    <%- include('./reusable/reload.ejs') %>
     <%- include('./reusable/script.ejs') %>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" ></script>
+    <script type="module" src="../public/js/login.js"></script>
 </body>
 </html>

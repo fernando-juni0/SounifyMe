@@ -4,12 +4,13 @@
   "description": "Um aplicativo de musica aonde e possivel se reunir com pessoas para escutar juntas",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "npm install; node index.js",
     "dev": "nodemon index.js"
   },
   "author": "Fernando Júnio",
   "license": "ISC",
   "dependencies": {
+    "@firebase/analytics": "^0.10.0",
     "@firebase/auth": "^0.22.0",
     "body-parser": "^1.20.2",
     "child_process": "^1.0.2",
