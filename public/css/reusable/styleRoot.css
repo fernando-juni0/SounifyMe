@@ -43,7 +43,7 @@
     
 }
 
-path{
+path:not(.notFill){
     fill: var(--color-fill);
 }
 

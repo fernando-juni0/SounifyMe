@@ -12,16 +12,17 @@ const configs = require('./config/index-config')
 const dropbox = require('./config/dropbox-config')
 
 
+
 //TODO------------Configs--------------
 const app = express();
 
 
 
 require('dotenv').config()
+
+
+app.use(session(configs.session));
 app.use(cookieParser());
-
-
-app.use(session(configs.session))
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json())
@@ -62,17 +63,15 @@ const upload = multer({ storage });
 //TODO-------------Banco de dados-------------
 
 
-
 const dados = require('./Firebase/models');
 
 
-
+dados.findAll({colecao:'contas'}).then((res)=>{console.log(res);})
 //TODO----------------Funções--------------------
 
 
 
 const functions = require('./functions');
-
 
 
 //TODO-----------------GET--------------------
@@ -83,15 +82,64 @@ const functions = require('./functions');
 
 
 
-app.get('/',(req,res)=>{
-    res.render('index')
+
+app.get('/home', functions.isAuthenticated, async (req,res)=>{
+    if (req.session.uid) {
+        res.render('index')
+    } else {
+        res.redirect('/login')
+    }
 })
 
 app.get('/login',(req,res)=>{
-    res.render('login')
+    if (req.session.uid) {
+        res.redirect('/home')
+    } else {
+        res.render('login')
+    }
 })
 
+//TODO-----------------POST--------------------
 
+
+
+app.post('/auth/Google', async (req,res)=>{
+    let userdata = req.body
+    if (req.session.uid) {
+        return res.redirect('/home')
+    }
+    if (userdata.uid) {
+        let accessToken = userdata.stsTokenManager.accessToken
+        await functions.verifyAuthToken(accessToken).then((result)=>{
+            if (result) {
+                
+                req.session.uid = result
+                req.session.accesstoken = accessToken
+                req.session.google = true
+                
+            }
+        })
+        res.redirect('/home')
+    }
+})
+
+app.post('/auth/email', async (req,res)=>{
+    let userdata = req.body
+    if (req.session.uid) {
+        return res.redirect('/home')
+    }
+    if (userdata.uid) {
+        let accessToken = userdata.stsTokenManager.accessToken
+        await functions.verifyAuthToken(accessToken).then((result)=>{
+            if (result) {
+                req.session.uid = result
+                req.session.accesstoken = accessToken
+                req.session.google = false
+            }
+        })
+        res.redirect('/home')
+    }
+})
 
 
 //TODO AUTH LOGIN
@@ -99,12 +147,11 @@ app.get('/login',(req,res)=>{
 app.get('/logout',(req,res)=>{
     const sessionID = req.session.id;
     req.sessionStore.destroy(sessionID, (err) => {
-    if(err){
-        return console.error(err)
-    }
-    res.redirect('/')
-
-})
+        if(err){
+            return console.error(err)
+        }
+        res.redirect('/login')
+    })
 })
 
 
@@ -113,8 +160,9 @@ app.get('/logout',(req,res)=>{
 
 //TODO-----------POST CONFIGS-----------------
 
-
-
+app.post('/firebaseApp',(req,res)=>{
+    res.send(require('./config/index-config').firebaseConfig)
+})
 
 
 

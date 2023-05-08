@@ -6,12 +6,10 @@ var admin = require("firebase-admin");
 var serviceAccount = require('../config/index-config').serviceAccount
 
 
-
 initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.DATABASE_URL
+  databaseURL: process.env.DATABASE_URL,
 });
-
 
 
 const db = getFirestore();

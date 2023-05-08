@@ -30,7 +30,6 @@ class AppController{
 
         Element.prototype.show = function (res) {
             //Mostra os elementos da pagina
-            console.log(res);
             if (res) {
                 this.style.display = res;
             }else{
