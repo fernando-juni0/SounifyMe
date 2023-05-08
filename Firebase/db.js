@@ -1,6 +1,5 @@
 const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
-const { getAnalytics } = require('firebase/analytics');
 var admin = require("firebase-admin");
 
 
@@ -13,7 +12,6 @@ initializeApp({
 });
 
 
-// const analytics = getAnalytics(app);
 const db = getFirestore();
 
 module.exports = db

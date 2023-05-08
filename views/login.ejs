@@ -9,9 +9,27 @@
 <body>
     <%- include('./reusable/googlePopup.ejs') %>
     <%- include('./reusable/reload.ejs') %>
-    <%- include('./reusable/script.ejs') %>
+
+
+    <main>
+        <section id="login-containner">
+            <form id="emailFormLogin" action="/auth/email" method="post">
+                <!-- <input type="text" id="userdata" name="userdata" hidd> -->
+                <input type="text" id="email">
+                <input type="text" id="senha">
+                <input type="submit" value="Logar" id="logar">
+            </form>
+        </section>
+        <section id="cadastro-containner">
+
+        </section>
+    </main>
+
+    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" ></script>
     <script type="module" src="../public/js/login.js"></script>
+    <%- include('./reusable/script.ejs') %>
 </body>
 </html>
