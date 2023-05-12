@@ -5,7 +5,11 @@
     <title>SounifyMe</title>
 </head>
 <body>
-    <%- include('./reusable/header.ejs',{banda:true, index:0,perfil:{nome:'TEst123',profileImg:'../public/img/exempleImg.jpg'} }) %>
+    <%- include('./reusable/reload.ejs') %>
+    <%- include('./reusable/header.ejs',{banda:user.banda, index:0,perfil:{nome:user.displayName,profileImg:user.profilePic == null ? "../public/img/logo_icon.png" : user.profilePic} }) %>
+    
+    
+    
     <%- include('./reusable/script.ejs') %>
 </form>
 </body>

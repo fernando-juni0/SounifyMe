@@ -10,7 +10,10 @@ const io = require('socket.io')
 const cookieParser = require("cookie-parser");
 const configs = require('./config/index-config')
 const dropbox = require('./config/dropbox-config')
-
+const db = require('./Firebase/models');
+const functions = require('./functions');
+const authentication = require('./Firebase/authentication')
+const { getAuth,fetchSignInMethodsForEmail } = require('firebase/auth')
 
 
 //TODO------------Configs--------------
@@ -36,7 +39,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs');
 
-
+const auth = getAuth();
 
 
 const storage = multer.diskStorage({
@@ -58,40 +61,39 @@ const upload = multer({ storage });
 
 
 
-
-
-//TODO-------------Banco de dados-------------
-
-
-const dados = require('./Firebase/models');
-
-
-dados.findAll({colecao:'contas'}).then((res)=>{console.log(res);})
-//TODO----------------Funções--------------------
-
-
-
-const functions = require('./functions');
-
-
 //TODO-----------------GET--------------------
 
 
 
 //TODO PAGES
 
-
-
-
-app.get('/home', functions.isAuthenticated, async (req,res)=>{
+app.get('/', (req,res)=>{
     if (req.session.uid) {
-        res.render('index')
+        res.redirect('/home')
     } else {
         res.redirect('/login')
     }
 })
 
-app.get('/login',(req,res)=>{
+
+app.get('/home', functions.isAuthenticated, async (req,res)=>{
+    if (req.session.uid) {
+        await db.findOne({colecao:'users',doc:req.session.uid}).then((result)=>{
+            const user = {
+                uid: result.uid,
+                profilePic: result.profilePic,
+                email: result.email,
+                displayName: result.displayName,
+                banda: result.banda
+            }
+            res.render('index',{user:user})
+        })
+    } else {
+        res.redirect('/login')
+    }
+})
+
+app.get('/login', async (req,res)=>{
     if (req.session.uid) {
         res.redirect('/home')
     } else {
@@ -99,59 +101,60 @@ app.get('/login',(req,res)=>{
     }
 })
 
+app.get('/auth/Google/login',(req,res)=>{
+    res.render('google-login')
+})
+
 //TODO-----------------POST--------------------
 
-
-
 app.post('/auth/Google', async (req,res)=>{
-    let userdata = req.body
-    if (req.session.uid) {
-        return res.redirect('/home')
-    }
-    if (userdata.uid) {
-        let accessToken = userdata.stsTokenManager.accessToken
-        await functions.verifyAuthToken(accessToken).then((result)=>{
-            if (result) {
-                
-                req.session.uid = result
-                req.session.accesstoken = accessToken
-                req.session.google = true
-                
-            }
-        })
+    authentication.googleLogin(req,res).then(()=>{
         res.redirect('/home')
-    }
+    })
 })
 
 app.post('/auth/email', async (req,res)=>{
-    let userdata = req.body
-    if (req.session.uid) {
-        return res.redirect('/home')
-    }
-    if (userdata.uid) {
-        let accessToken = userdata.stsTokenManager.accessToken
-        await functions.verifyAuthToken(accessToken).then((result)=>{
-            if (result) {
-                req.session.uid = result
-                req.session.accesstoken = accessToken
-                req.session.google = false
+    fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
+        if (signInMethods.length > 0) {
+            if (signInMethods == "google.com") {
+                return res.redirect('/auth/Google/login')
             }
-        })
-        res.redirect('/home')
-    }
+            authentication.singInEmail(req,res)
+        }else{
+            authentication.singUpEmail(req,res)
+        }
+    })
 })
 
-
+app.post('/auth',(req,res)=>{
+    let user = JSON.parse(req.body.user)
+    if (!req.session.uid) {
+        functions.verifyAuthToken(user.stsTokenManager.accessToken).then((result)=>{
+            console.log(result);
+            if (result) {
+                req.session.uid = user.uid
+                req.session.accesstoken = user.stsTokenManager.accessToken
+                res.redirect('/home')
+            }else{
+                res.redirect('/logout')
+            }
+        })
+        
+    }
+    
+})
 //TODO AUTH LOGIN
 
 app.get('/logout',(req,res)=>{
-    const sessionID = req.session.id;
-    req.sessionStore.destroy(sessionID, (err) => {
-        if(err){
-            return console.error(err)
-        }
-        res.redirect('/login')
-    })
+    if (req.session.uid) {
+        const sessionID = req.session.id;
+            req.sessionStore.destroy(sessionID, (err) => {
+            if(err){
+                return console.error(err)
+            }
+        })
+    }
+    res.render('logout')
 })
 
 

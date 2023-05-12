@@ -1,12 +1,18 @@
 const admin = require('firebase-admin');
 
+
 module.exports = {
     isAuthenticated: async (req, res, next)=> {
         const idToken = req.session.accesstoken;
         if (!idToken) {
+            
             res.redirect('/login');
         } else {
             await admin.auth().verifyIdToken(idToken).then(function(decodedToken) {
+                if (!req.session.uid) {
+                    req.session.uid = decodedToken.uid
+                    req.session.accesstoken = idToken
+                }
                 next();
             }).catch(function(error) {
                 console.error('Erro ao verificar o token de autenticação:', error);

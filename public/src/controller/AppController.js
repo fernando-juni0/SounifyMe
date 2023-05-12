@@ -66,6 +66,5 @@ class AppController{
             return this
 
         }
-
     }
 }

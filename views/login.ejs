@@ -4,31 +4,76 @@
     <%- include('./reusable/head.ejs') %>
     <link rel="stylesheet" href="../public/css/login.css">
     <title>Login - SounifyMe</title>
-    
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
 </head>
-<body>
+<body id="body">
     <%- include('./reusable/googlePopup.ejs') %>
     <%- include('./reusable/reload.ejs') %>
-
-
+    <!-- <button onclick="theme()">theme</button>
+    <script>
+        var test = true
+        function theme(){
+            console.log(test);
+            if (test == true) {
+                document.getElementById('body').setAttribute('data-theme', 'light')
+                test == false
+            }else{
+                document.getElementById('body').setAttribute('data-theme', 'dark')
+                test == true
+            }
+            console.log(test);
+        }
+        
+    </script>  -->
     <main>
         <section id="login-containner">
-            <form id="emailFormLogin" action="/auth/email" method="post">
-                <!-- <input type="text" id="userdata" name="userdata" hidd> -->
-                <input type="text" id="email">
-                <input type="text" id="senha">
-                <input type="submit" value="Logar" id="logar">
-            </form>
+            <div id="login-content">
+                <div id="login-img-containner">
+                    <img src="../public/img/zyro-image.png" alt="">
+                </div>
+                <div id="login-form-containner">
+                    <h1 id="login-title">Login</h1>
+                    <form id="emailFormLogin" action="/auth/email" method="post">
+                        <div class="login-input-containner">
+                            <label for="email">Email</label>
+                            <input type="text" id="email" name="email" placeholder="example@gmail.com">
+                        </div>
+                        <div class="login-input-containner">
+                            <label for="senha">Senha</label>
+                            <input type="text" id="senha" name="senha" placeholder="**********************">
+                        </div>
+                        <div id="forgot-password-containner">
+                            <a href="#">Esqueceu sua senha?</a>
+                        </div>
+                        <div id="button-and-remember-containner">
+                            <div id="button-content">
+                                <input type="submit" value="Logar" id="logar">
+                            </div>
+                            <div id="remember-content">
+                                <div id="check-content" ><div id="check-circle"></div></div>
+                                <span>Lembre de mim</span>
+                                <input type="checkbox" name="remember" checked hidden id="remember-input">
+                            </div>
+                        </div>
+                    </form>
+                    <div id="create-account-containner">
+                        <span>Não tem uma conta?</span>
+                        <a href="/cadastro">Cadastre-se</a>
+                    </div>
+                </div>
+            </div>
         </section>
         <section id="cadastro-containner">
 
         </section>
     </main>
 
-    
+    <form action="/auth" id="formignore" method="post"><input type="text" id="userAutenticate" name="user" hidden></form>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script type="module" src="../public/js/login.js"></script>
     <%- include('./reusable/script.ejs') %>
 </body>

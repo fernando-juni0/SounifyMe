@@ -28,8 +28,8 @@ const firebaseApp = initializeApp(firebaseDATA);
 const auth = getAuth();
 
 document.getElementById('logout').addEventListener('click',()=>{
-    signOut(auth).then(() => {
+    // signOut(auth).then(() => {
         location.href = '/logout'
-    })
+    // })
 })
 
