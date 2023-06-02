@@ -13,9 +13,19 @@ miniperfil.addEventListener('click',()=>{
 })
 
 
+
+
 document.getElementById('hamburgerMenu').addEventListener('click', ()=>{
     header.toggle()
     miniHeader.toggle('flex')
+    if (miniHeader.style.display == 'none') {
+        document.getElementById('main-containner').style.width = 'calc(100% - 15em)'
+        localStorage.setItem('menu','full')
+    }else{
+        document.getElementById('main-containner').style.width = 'calc(100% - 4em)'
+        localStorage.setItem('menu','mini')
+    }
+    
 })
 
 
@@ -28,8 +38,8 @@ const firebaseApp = initializeApp(firebaseDATA);
 const auth = getAuth();
 
 document.getElementById('logout').addEventListener('click',()=>{
-    signOut(auth).then(() => {
+    // signOut(auth).then(() => {
         location.href = '/logout'
-    })
+    // })
 })
 

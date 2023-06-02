@@ -54,18 +54,14 @@ class AppController{
                 this.addEventListener(events, fn)
             })
             return this
-
         }
 
         Element.prototype.css = function (styles) {
             //muda os estilos
-
             for (let name in styles) {
                 this.style[name] = styles[name]
             }
             return this
-
         }
-
     }
 }

@@ -135,10 +135,19 @@ header{
 #displayName{
     margin-left: 0.8em;
     margin-right: 0.8em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: center;
+    white-space: nowrap;
 }
 #displayName span{
+    width: inherit;
     color: var(--text-gray-color-primary);
-    font: normal 1.2em 'Ubuntu', sans-serif;;
+    font: normal 1em 'Ubuntu', sans-serif;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 #miniperfil-config-button{
     margin-right: 0.2em;
@@ -297,7 +306,7 @@ header{
 }
 .miniHeader-text-links{
     color: var(--text-gray-color-primary);
-    font: 400 0.6em 'Raleway', sans-serif;
+    font: 500 0.6em 'Raleway', sans-serif;
     margin-top: 1em;
 }
 .svg-icons-Miniheader{
