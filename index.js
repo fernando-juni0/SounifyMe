@@ -94,10 +94,20 @@ app.get('/home', functions.isAuthenticated, async (req,res)=>{
 })
 
 app.get('/login', async (req,res)=>{
+    let mensage = ''
+    if (req.query.exist == 'false' ) {
+        mensage = 'Esse email não existe, tente cadastra-lo!' 
+         
+    }else{
+        mensage = 'Esse email ja existe, faça login para acessar sua conta!'
+    }
+    if (req.query.pass == 'invalid') {
+        mensage = 'Senha incorreta!'
+    }
     if (req.session.uid) {
         res.redirect('/home')
     } else {
-        res.render('login')
+        res.render('login',{mensage,exist:req.query.exist,pass:req.query.pass,login: req.query.login ? req.query.login : null})
     }
 })
 
@@ -126,22 +136,46 @@ app.post('/auth/email', async (req,res)=>{
     })
 })
 
+app.post('/auth/email/login', async (req,res)=>{
+    fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
+        if (signInMethods.length > 0) {
+            if (signInMethods == "google.com") {
+                return res.redirect('/auth/Google/login')
+            }
+            authentication.singInEmail(req,res)
+        }else{
+            return res.redirect('/login?login=false&exist=false')
+        }
+    })
+})
+
+app.post('/auth/email/cadastro', async (req,res)=>{
+    fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
+        if (signInMethods.length > 0) {
+            if (signInMethods == "google.com") {
+                return res.redirect('/auth/Google/login')
+            }
+            return res.redirect('/login?exist=true')
+        }else{
+            authentication.singUpEmail(req,res)
+        }
+    })
+})
+
+
 app.post('/auth',(req,res)=>{
     let user = JSON.parse(req.body.user)
     if (!req.session.uid) {
         functions.verifyAuthToken(user.stsTokenManager.accessToken).then((result)=>{
-            console.log(result);
             if (result) {
                 req.session.uid = user.uid
                 req.session.accesstoken = user.stsTokenManager.accessToken
-                res.redirect('/home')
+                return res.redirect('/home')
             }else{
                 res.redirect('/logout')
             }
         })
-        
     }
-    
 })
 //TODO AUTH LOGIN
 

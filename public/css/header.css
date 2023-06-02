@@ -306,7 +306,7 @@ header{
 }
 .miniHeader-text-links{
     color: var(--text-gray-color-primary);
-    font: 400 0.6em 'Raleway', sans-serif;
+    font: 500 0.6em 'Raleway', sans-serif;
     margin-top: 1em;
 }
 .svg-icons-Miniheader{

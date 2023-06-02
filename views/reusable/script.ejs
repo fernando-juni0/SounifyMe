@@ -1,3 +1,19 @@
 <script src="../public/src/util/Format.js"></script>
 <script src="../public/src/controller/AppController.js"></script>
 <script src="../public/src/app.js"></script>
+
+<script>
+    reloadActivate()
+    function reloadActivate() {
+        document.getElementById('reload-containner').show('flex')
+    }
+    function reloadStop() {
+        document.getElementById('reload-containner').hide()
+    }
+    document.body.onload = ()=>{
+        setTimeout(()=>{     
+            document.getElementById('main-containner').show('flex')
+            reloadStop()
+        }, 1000);
+    }
+</script>

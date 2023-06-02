@@ -35,6 +35,7 @@
     --color-text-primary: #fff;
     --boder-color-primary: #C0C0C0;
     --border-color: rgba(113, 113, 113, 50%);
+    --border-color2: rgba(241, 241, 241, 0.918);
     --color-fill: rgb(255, 255, 255);
     --color-fill2: rgba(255, 255, 255,0.8);
 } 
@@ -48,13 +49,12 @@ path:not(.notFill){
 }
 
 body{
-    background-color: var(--main-background);
+    background-color: var(--secundary-color);
 }
 
-#containner{
+#main-containner{
     display: none;
     transition: 1s;
-    width: 100%;
 }
 
 body,html{
@@ -75,4 +75,7 @@ img{
 a{
     text-decoration: none;
     color: var(--text-gray-color-primary);
+}
+.material-symbols-outlined{
+    translate: none;
 }

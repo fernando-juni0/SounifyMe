@@ -13,12 +13,14 @@ const firebaseApp = initializeApp(firebaseDATA);
 const provider = new GoogleAuthProvider();
 
 const auth = getAuth();
-
 auth.onAuthStateChanged(function(user) {
     if (user) {
-      window.location.href = location.origin + "/home";
-    } else {
-      signInWithRedirect(auth,provider).then()
-    }
+        window.location.href = location.origin + "/home";
+    } 
 });
-
+document.getElementById('cancelar').addEventListener('click',()=>{
+    window.location.href = location.origin + "/login";
+})
+document.getElementById('aceitar').addEventListener('click',()=>{
+    signInWithRedirect(auth,provider)    
+})

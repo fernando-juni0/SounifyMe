@@ -3,10 +3,10 @@
         background-color: rgba(0, 0, 0, 0.295);
         width: 100vw;
         height: 100vh;
-        display: none;
         justify-content: center;
         align-items: center;
         position: fixed;
+        z-index: 1000000;
     }
     .music {
         display: inline-flex;
@@ -85,7 +85,7 @@
         animation-delay: 1.4s;
     }
 </style>
-<div id="reload-containner">
+<div id="reload-containner" style="display: none;">
     <div class='music'>
         <div class='bar'></div>
         <div class='bar'></div>
@@ -99,11 +99,3 @@
         <div class='bar'></div>
       </div>
 </div>
-<script>
-    function reloadActivate() {
-        document.getElementById('reload-containner').show('flex')
-    }
-    function reloadStop() {
-        document.getElementById('reload-containner').hide()
-    }
-</script>

@@ -1,5 +1,5 @@
 const { initializeApp } = require('firebase/app')
-const { getAuth, GoogleAuthProvider, browserSessionPersistence,setPersistence, signInWithPopup ,createUserWithEmailAndPassword,fetchSignInMethodsForEmail, onAuthStateChanged, signInWithEmailAndPassword, signOut } = require('firebase/auth')
+const { getAuth, GoogleAuthProvider, updateCurrentUser, browserSessionPersistence,setPersistence, signInWithPopup ,createUserWithEmailAndPassword,fetchSignInMethodsForEmail, onAuthStateChanged, signInWithEmailAndPassword, signOut } = require('firebase/auth')
 const functions = require('../functions')
 const db = require('./models')
 
@@ -66,6 +66,13 @@ module.exports = {
                         }
                     })
                 }
+            }).catch((error)=>{
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                if (errorCode == 'auth/wrong-password') {
+                    return res.redirect('/login?pass=invalid')
+                }
+
             })
         })
 
@@ -75,6 +82,7 @@ module.exports = {
             createUserWithEmailAndPassword(auth,req.body.email, req.body.senha).then(async(userCredential) => {
                 const user = userCredential.user;
                 if (user) {
+                    user.displayName = req.body.username
                     let accessToken = user.stsTokenManager.accessToken
                     await functions.verifyAuthToken(accessToken).then(async(result)=>{
                         if (result) {
