@@ -5,6 +5,7 @@ import { getAuth, signOut} from 'https://www.gstatic.com/firebasejs/9.0.0/fireba
 
 let miniperfil = document.getElementById('mini-perfil-header-content')
 let optionsMiniperfil = document.getElementsByClassName('mini-perfil-options-popup')
+let miniPerfilMiniHeader = document.getElementById('profile-image-miniheader')
 let header = document.getElementById('header')
 let miniHeader = document.getElementById('miniHeader')
 
@@ -12,6 +13,23 @@ miniperfil.addEventListener('click',()=>{
     optionsMiniperfil[0].classList.toggle('optionsOpen')
 })
 
+miniPerfilMiniHeader.addEventListener('click',()=>{
+    optionsMiniperfil[0].classList.toggle('optionsOpen')
+})
+
+
+const menuType = localStorage.getItem('menu')
+
+if (menuType == null || menuType == undefined) {
+    localStorage.setItem('menu','full')
+}else if(menuType == 'full'){
+    header.show('flex')
+    miniHeader.hide()
+}else{
+    document.getElementById('main-containner').style.width = 'calc(100% - 4em)'
+    header.hide()
+    miniHeader.show('flex')
+}
 
 
 
@@ -38,8 +56,6 @@ const firebaseApp = initializeApp(firebaseDATA);
 const auth = getAuth();
 
 document.getElementById('logout').addEventListener('click',()=>{
-    // signOut(auth).then(() => {
-        location.href = '/logout'
-    // })
+    location.href = '/logout'
 })
 
