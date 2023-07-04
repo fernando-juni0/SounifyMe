@@ -7,6 +7,8 @@ await $.post('/firebaseApp', (data)=>{
     firebaseDATA = data
 })
 
+var url = new URL(window.location.href);
+var params = new URLSearchParams(url.search);
 
 const firebaseApp = initializeApp(firebaseDATA);
 const provider = new GoogleAuthProvider();
@@ -18,6 +20,7 @@ document.getElementById('body-containner').hide()
 auth.onAuthStateChanged(function(user) {
     if (user) {
         document.getElementById('userAutenticate').value = JSON.stringify(user)
+        document.getElementById('userRedirect').value = params.get('redirect')
         document.getElementById('formignore').submit()
     }else{
         document.getElementById('body-containner').show('block')
@@ -85,10 +88,12 @@ document.getElementById('emailFormCadastro').addEventListener('submit',(e)=>{
 
 
 document.getElementById('googleLogin').addEventListener('click',()=>{
+    
     signInWithPopup(auth, provider).then((result) => {
         const user = result.user;
+        console.log(user);
         if (user) {
-            document.getElementById('user').value = JSON.stringify(user)
+            document.getElementById('userGoogle').value = JSON.stringify(user)
             reloadActivate()
             setTimeout(()=>{
                 document.getElementById('googleFormLogin').submit()
@@ -109,8 +114,7 @@ document.getElementById('remember-content').addEventListener('click',()=>{
 
 
 
-var url = new URL(window.location.href);
-var params = new URLSearchParams(url.search);
+
 
 
 
@@ -123,16 +127,30 @@ if (larguraDaTela <= 1200) {
 }
 
 
+var isLoading = false
+
 window.addEventListener('resize',()=>{
     larguraDaTela = window.innerWidth
+    if (isLoading == true) {
+        return
+    }
     if (larguraDaTela <= 1200) {
         indexPageMini()
     }else{
         indexPage()
     }
 });
+function resetImg() {
+    document.querySelector('#login-img-containner img').css({
+        left:0,
+        borderRadius:"0",
+        animation: "",
+    })
+}
 
 function indexPageMini() {
+    resetImg()
+    document.querySelector('#login-img-containner').hide()
     if(params.get('login') == 'false'){
         document.getElementById('login-form-containner').hide()
         document.getElementById('cadastro-form-containner').css({
@@ -152,6 +170,8 @@ function indexPageMini() {
 }
 
 function  indexPage(){
+    resetImg()
+    document.querySelector('#login-img-containner').show('flex')
     document.getElementById('login-form-containner').css({
         display:'flex',
         width:'50%'
@@ -187,7 +207,6 @@ document.getElementById('button-cadastro').addEventListener('click',()=>{
 
 document.getElementById('button-login').addEventListener('click',()=>{
     if (larguraDaTela <= 1200) {
-        console.log(1);
         loginAnimation(false,'left',false) 
     }else{
         loginAnimation(true,'left',false) 
@@ -197,9 +216,7 @@ document.getElementById('button-login').addEventListener('click',()=>{
 
 
 function loginAnimation(animation, direction,pageReload) {
-    
-    
-    
+    resetImg()
     if (direction == 'right') {
         if (pageReload == false) {
             params.set('login', 'false');
@@ -212,6 +229,7 @@ function loginAnimation(animation, direction,pageReload) {
                 display:'flex',
                 width:'100%'
             })
+            isLoading = true
             setTimeout(()=>{
                 document.getElementById('cadastro-form-containner').css({
                     display:'flex',
@@ -219,6 +237,7 @@ function loginAnimation(animation, direction,pageReload) {
                 })
                 document.getElementById('cadastro-form-content').show('flex')
                 document.getElementsByClassName('loader-containner')[0].hide()
+                isLoading = false
             },2000)
             return
         }
@@ -230,6 +249,7 @@ function loginAnimation(animation, direction,pageReload) {
             borderRadius: '0 10px 10px 0',
             animation:'rightMenu 2s forwards'
         })
+        isLoading = true
         setTimeout(()=>{
             document.getElementById('cadastro-form-content').show('flex')
         },2000)
@@ -246,6 +266,7 @@ function loginAnimation(animation, direction,pageReload) {
                 display:'flex',
                 width:'100%'
             })
+            isLoading = true
             setTimeout(()=>{
                 document.getElementById('login-form-containner').css({
                     display:'flex',
@@ -253,11 +274,13 @@ function loginAnimation(animation, direction,pageReload) {
                 })
                 document.getElementById('login-form-content').show('block')
                 document.getElementsByClassName('loader-containner')[0].hide()
+                isLoading = false
             },2000)
             return
         }
         document.getElementsByClassName('loader-containner')[1].show("flex")
         document.getElementsByClassName('loader-containner')[0].show("flex")
+        isLoading = true
         document.getElementById('cadastro-form-content').hide()
         document.querySelector('#login-img-containner img').css({
             borderRadius: '10px 0 0 10px',
@@ -265,13 +288,37 @@ function loginAnimation(animation, direction,pageReload) {
         })
         setTimeout(()=>{
             document.getElementById('login-form-content').show('block')
+            document.getElementsByClassName('loader-containner')[1].hide()
+            document.getElementsByClassName('loader-containner')[0].hide()
+            isLoading = false
         },2000)
     }
     setTimeout(()=>{
         document.getElementsByClassName('loader-containner')[1].hide()
         document.getElementsByClassName('loader-containner')[0].hide()
+        isLoading = false
     },2000)
 }
 
 
 
+document.getElementById('passHideCadastro').addEventListener('click',()=>{
+    if (document.getElementById('senhaCadastro').getAttribute('type') == 'password') {
+        document.querySelector('#passHideCadastro img').src = '../public/assets/svg/visibility_off_FILL0_wght400_GRAD0_opsz48.svg'
+        document.getElementById('senhaCadastro').setAttribute('type','text')
+    }else{
+        document.querySelector('#passHideCadastro img').src = '../public/assets/svg/visibility_FILL0_wght400_GRAD0_opsz48.svg'
+        document.getElementById('senhaCadastro').setAttribute('type','password')
+    }
+})
+
+
+document.getElementById('passHideLogin').addEventListener('click',()=>{
+    if (document.getElementById('senhaLogin').getAttribute('type') == 'password') {
+        document.querySelector('#passHideLogin img').src = '../public/assets/svg/visibility_off_FILL0_wght400_GRAD0_opsz48.svg'
+        document.getElementById('senhaLogin').setAttribute('type','text')
+    }else{
+        document.querySelector('#passHideLogin img').src = '../public/assets/svg/visibility_FILL0_wght400_GRAD0_opsz48.svg'
+        document.getElementById('senhaLogin').setAttribute('type','password')
+    }
+})

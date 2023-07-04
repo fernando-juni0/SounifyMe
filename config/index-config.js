@@ -7,7 +7,6 @@ module.exports = {
         saveUninitialized: false,
     },
     port: process.env.PORT || 80,
-    dropboxToken: process.env.DROPBOXTOKEN,
     serviceAccount: require('../config/sounifyme-firebase-admin.json'),
     firebaseConfig: require('../config/firebase-config.json'),
 }

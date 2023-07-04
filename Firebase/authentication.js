@@ -18,16 +18,31 @@ async function createDb(user) {
         if (result2) {
             return
         }else{
+            let displayName = user.displayName == null || user.displayName == undefined ? user.email.split('@')[0] : user.displayName
+            let displayNameModify = await functions.stringLimit(displayName,16)
+            let idCount = await db.findOne({colecao:"statistics",doc:'users'})
             await db.create('users',user.uid,{
+                id: idCount.userCount,
                 uid:user.uid,
-                displayName: user.displayName == null || user.displayName == undefined ? user.email.split('@')[0] : user.displayName,
-                profilePic: user.photoURL == undefined ? null : user.photoURL,
+                displayName: displayNameModify,
+                profilePic: user.photoURL == undefined || user.photoURL == null ? '../public/img/logo_icon.png' : user.photoURL,
                 email: user.email,
                 emailVerificad: user.emailVerified == undefined ? null : user.emailVerified,
                 phoneNumber: user.phoneNumber == undefined ? null : user.phoneNumber,
                 accessToken: user.stsTokenManager.accessToken,
                 provider: user.providerId == undefined? null : user.providerId,
-                banda: false
+                banda: false,
+                banner: {
+                    type: 'color',
+                    content: '7000FF'
+                },
+                playlist: [],
+                folowInfo:{
+                    seguidores: [],
+                    seguindo: []
+                },
+            }).then(()=>{
+                
             })
         }
     })

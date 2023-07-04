@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('./reusable/head.ejs') %>
+    <title>Perfil - <%= userProfile.displayName %></title>
+    <link rel="stylesheet" href="../public/css/perfil.css">
+</head>
+<body>
+    <div id="body-containner">
+        <%- include('./reusable/reload.ejs') %>
+        <div id="containner">
+            <%- include('./reusable/header.ejs',{banda:user.banda, index:null,perfil:{nome:user.displayName,profileImg:user.profilePic == null ? "../public/img/logo_icon.png" : user.profilePic} }) %>
+            
+            <div id="folow-info-popup-containner" style="display: none;" >
+                <div id="close-popup-out"></div>
+                <div id="folow-info-popup-content">
+                    <div data-page-seguindo="1"  id="seguindo-popup">
+                        <div class="folow-info-title-containner">
+                            <h1 class="folow-info-title">Seguindo</h1>
+                            <div class="close-popup">
+                                <img src="../public/assets/svg/close_g0xorss70bu5.svg" alt="">
+                            </div>
+                        </div>
+                        <div class="linha"></div>
+                        <div class="folow-info-row">
+                            
+                        </div>
+                     </div> 
+                    <div data-page-seguidores="1" style="display: none;" id="seguidores-popup">
+                        <div class="folow-info-title-containner">
+                            <h1 class="folow-info-title">Seguidores</h1>
+                            <div class="close-popup">
+                                <img src="../public/assets/svg/close_g0xorss70bu5.svg" alt="">
+                            </div>
+                        </div>
+                        <div class="linha"></div>
+                        <div class="folow-info-row">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% if (userProfile.isMyProfile == true) { %> 
+                <div id="edit-profile-popup-containner" style="display: none;" class="flex-center">
+                    <div id="close-popup-out-edit"></div>
+                    <div id="edit-profile-popup">
+                        <div id="top-edit-containner">
+                            <h1 id="edit-profile-title">Editar Perfil</h1>
+                            <div id="close-edit">
+                                <img src="../public/assets/svg/close_g0xorss70bu5.svg">
+                            </div>
+                        </div>
+                        <div id="edit-profile-content">
+                            <div id="edit-profile-photo">
+                                <img id="imgDisplayUser" src="<%= userProfile.profilePic %>">
+                                <div id="edit-photo">
+                                    <input type="file" name="profileImg" id="inputFile-profileImg">
+                                </div>
+                            </div>
+                            <div id="edit-profile-displayName">
+                                
+                                <label id="input-displayName-label" for="input-displayName">Username</label>
+                                <input name="displayName" value="<%= userProfile.displayName %>" placeholder="Username" id="input-displayName" type="text">
+                                <div id="button-save-containner">
+                                    <input id="save-edit" type="submit" value="Salvar">
+                                </div>
+                                
+                            </div>
+
+                        </div>
+                        <div id="edit-desc">
+                            <span id="desc-infos-span">Ao continuar, você autoriza o SounifyMe a acessar a imagem enviada. Certifique-se de que você tem o direito de fazer o upload dessa imagem.</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="edit-banner-containner">
+                    <div id="close-popup-banner-edit"></div>
+                    <div id="edit-banner-content">
+                        <div id="top-banner-edit">
+                            <h1 id="title-popup-banner">Escolha o Estilo</h1>
+                            <img id="close-popup-banner" src="../public/assets/svg/close_g0xorss70bu5.svg" alt="">
+                        </div>
+                        <div id="circle-banner-containner">
+                            <div id="edit-banner-img">
+                                <div id="circle-img" class="circle-containner flex-center">
+                                    <img src="../public/assets/svg/icons8-adicionar-imagem-48 (1).png">
+                                </div>
+                                <label class="title-circle-banner">Enviar Imagem</label>
+                            </div>
+                            <div id="edit-banner-color">
+                                <div id="circle-color" data-bannerColor="<%= userProfile.banner.type == 'color' ? userProfile.banner.content : "" %>" class="circle-containner flex-center">
+                                    <img src="../public/assets/svg/icons8-conta-gotas-24.png">
+                                </div>
+                                <label class="title-circle-banner">Enviar Cor</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+            <main id="main-containner" >
+               <div id="main-content">
+                    <div id="perfil-continner">
+                        <div id="banner-continner" data-type="<%= userProfile.banner.type %>">
+                            <input type="file" hidden name="profileBanner" id="profile-banner-input">
+                            <% if (userProfile.banner.type == 'color') { %>
+                                <div id="banner-color" data-color="<%= userProfile.banner.content %>">
+                                    <% if (userProfile.isMyProfile == true) { %> 
+                                        <div class="banner-profile-class"></div>
+                                    <% } %>
+                                </div>
+                            <% }else{ %>
+                                <div id="banner-img">
+                                    <% if (userProfile.isMyProfile == true) { %> 
+                                        <div class="banner-profile-class"></div>
+                                    <% } %>
+                                    <img src="<%= userProfile.banner.content %>">
+                                </div>
+                            <% } %>
+                        </div>
+                        <div id="user-containner">
+                            <div id="profile-pic" class="flex-center">
+                                <img id="profile-pic-img" src="<%= userProfile.profilePic %>">
+                            </div>
+                            <div id="user-info-containner">
+                                <div id="user-info-content" >
+                                    <div id="displayName-containner">
+                                        <span id="displayName-profile" title="<%= userProfile.displayName%>"><%= userProfile.displayName%></span>
+                                    </div>
+                                    <div id="user-info-other" class="flex-center"> 
+                                        <span id="playlist"><span class="number-info"><%= userProfile.playlist.length %></span><br> Playlists</span>
+                                        <span id="seguidores"><span class="number-info"><%= userProfile.folowInfo.seguidores.length %></span><br> Seguidores</span>
+                                        <span id="seguindo"><span class="number-info"><%= userProfile.folowInfo.seguindo.length %></span><br> Seguindo</span>
+                                    </div>
+                                </div>
+                                <div id="profile-button-containner">
+                                     <% if (userProfile.isMyProfile == false) { %> 
+                                        <div id="folow-button">
+                                            <button data-folow="<%= userProfile.isFolow %>" class="profile-button <%=  userProfile.isFolow == true ? "seguindo" : "" %>" id="button-seguir"></button>
+                                        </div>
+                                     <% }else{ %> 
+                                        <div id="edit-button">
+                                            <button id="button-editar">Editar Perfil</button>
+                                        </div>
+                                     <% } %> 
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+               </div>
+            </main>
+        </div>
+    </div>
+
+    <%- include('./reusable/script.ejs') %>
+    <script src="../public/js/perfil.js"></script>
+</body>
+</html>

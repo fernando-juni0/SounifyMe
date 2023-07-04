@@ -27,6 +27,7 @@ module.exports = {
                 return findItem
             }
             if (props.where) {
+                
                 let whereKeys = Object.keys(props.where)
                 let whereValues = Object.values(props.where)
                 return res.find((item,index)=>{ return item[whereKeys[index]] == whereValues[index] })
@@ -35,7 +36,7 @@ module.exports = {
     },
     update: async(colecao, documento, dados)=>{
         await db.collection(colecao).doc(documento).update(dados);
-        return
+        return 
     },
     delete: async(colecao, documento)=>{
         await db.collection(colecao).doc(documento).delete();

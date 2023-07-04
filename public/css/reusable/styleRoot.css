@@ -21,10 +21,12 @@
 
 :root{
     --primary-color: #0A0A0A;
+    --primary-color-opacity: rgba(10, 10, 10,0.5);
     --secundary-color: #232323;
     --tertiary-color: #1E1E1E;
-    --primary-lite-color: #464646;
+    --primary-lite-color: #313131;
     --secundary-lite-color:#575757;
+    --tertiary-lite-color:#444444;
     --main-color-transparent: rgba(40, 40, 40, 70%);
     --main-color-puple: #915CDF;
     --secundary-color-puple: rgb(171, 148, 233);
@@ -54,7 +56,6 @@ body{
 
 #main-containner{
     display: none;
-    transition: 1s;
 }
 
 body,html{
@@ -78,4 +79,15 @@ a{
 }
 .material-symbols-outlined{
     translate: none;
+}
+
+#containner{
+    width: 100vw;
+}
+
+.flex-center{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
