@@ -6,7 +6,7 @@ module.exports = {
         resave: false, 
         saveUninitialized: false,
     },
-    port: process.env.PORT || 80,
+    port: process.env.PORT || 3000,
     serviceAccount: require('../config/sounifyme-firebase-admin.json'),
     firebaseConfig: require('../config/firebase-config.json'),
 }

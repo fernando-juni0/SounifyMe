@@ -41,6 +41,8 @@ async function createDb(user) {
                     seguidores: [],
                     seguindo: []
                 },
+
+                joinroom:null
             }).then(()=>{
                 
             })

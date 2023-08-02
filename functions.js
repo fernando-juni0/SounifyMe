@@ -32,7 +32,7 @@ module.exports = {
             return null;
         }
     },
-    removeArrayEmpty: async (array)=>{
+    removeArrayEmpty: (array)=>{
         var arrayFilter = array.filter(function(elemento) {
             return elemento !== '' && elemento !== null && elemento !== undefined;
         });
@@ -43,7 +43,7 @@ module.exports = {
         }
         return arrayFilter
     },
-    numberFormater: async (array)=>{
+    numberFormater: (array)=>{
         // -----
 
         // inacabado!!!!!!!!!!!
@@ -90,7 +90,7 @@ module.exports = {
             return arrayFormatado;
         }
     },
-    stringLimit: async (str,maxLength)=>{
+    stringLimit: (str,maxLength)=>{
         if (str.length <= maxLength) {
             return str; // Retorna a string original se já estiver dentro do tamanho desejado
         } else {
@@ -129,5 +129,27 @@ module.exports = {
         })
         return await Promise.all(userData)
         
+    },
+    userModel: async (result,removeArrayEmpty)=>{
+        let seguindo = removeArrayEmpty(result.folowInfo.seguindo)
+        let playlist = removeArrayEmpty(result.playlist)
+        let seguidores = removeArrayEmpty(result.folowInfo.seguidores)
+        return {
+            uid: result.uid,
+            profilePic: result.profilePic,
+            email: result.email,
+            displayName: result.displayName,
+            banda: result.banda,
+            banner:result.banner,
+            folowInfo: {
+                seguindo,
+                seguidores
+            },
+            playlist: playlist,
+            playlistString: JSON.stringify(playlist),
+            joinroom:result.joinroom
+        }
     }
 }
+module.exports.removeArrayEmpty = module.exports.removeArrayEmpty.bind(module.exports);
+module.exports.numberFormater = module.exports.numberFormater.bind(module.exports);

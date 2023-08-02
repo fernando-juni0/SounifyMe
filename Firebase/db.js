@@ -11,7 +11,6 @@ initializeApp({
   databaseURL: process.env.DATABASE_URL,
 });
 
-
 const db = getFirestore();
 
 module.exports = db
