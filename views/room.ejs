@@ -6,12 +6,24 @@
     <link rel="stylesheet" href="../public/css/room.css">
 </head>
 <body>
-    <div id="body-containner">
+    <div id="body-containner" >
         <%- include('./reusable/reload.ejs') %>
+        <div id="click-containner">
+            <div id="click-roomPic">
+                <img src="<%= room.roomPic %>" alt="">
+            </div>
+            <div id="click-text">
+                <p>Voce esta entrando no servidor: (<%= room.roomName %>) Deseja Continuar?</p>
+            </div>
+            <div id="click-buttons">
+                <input type="button" id="click-button-back" value="Voltar">
+                <input type="button" id="click-button-continuar" value="Continuar">
+            </div>
+        </div>
         <div id="containner">
             <main id="main-containner">
                 <div id="main-content">
-                    <div id="queue-containner">
+                    <div  id="queue-containner">
                         <div id="queue-title-containner">
                             <h1 id="queue-title-h1">Fila de Reprodução</h1>
                         </div>
@@ -29,20 +41,31 @@
                                 <div id="main-chat-content">
                                     <div id="main-chat-row">
                                         <% room.mensages.forEach(element => { %>
-                                            <div class="main-chat-col">
-                                                <div class="main-chat-user-profile-pic">
-                                                    <img src="<%= element.userPic %>" class="main-chat-user-profile-pic-img">
-                                                </div>
-                                                <div class="main-chat-text-containner">
-                                                    <div class="main-chat-user-top">
-                                                        <span class="main-chat-user-name-span"><%= element.userName %></span>
-                                                        <span class="main-chat-user-date"><%= element.mensageDate %></span>
+                                            <% if (element.mensage) { %>
+                                                <div class="main-chat-col">
+                                                    <div class="main-chat-user-profile-pic">
+                                                        <img src="<%= element.userPic %>" class="main-chat-user-profile-pic-img">
                                                     </div>
-                                                    <div class="main-chat-user-mensage">
-                                                        <p class="main-chat-user-mensage-p"><%= element.mensage %></p>
+                                                    <div class="main-chat-text-containner">
+                                                        <div class="main-chat-user-top">
+                                                            <span class="main-chat-user-name-span"><%= element.userName %></span>
+                                                            <span class="main-chat-user-date"><%= element.mensageDate %></span>
+                                                        </div>
+                                                        <div class="main-chat-user-mensage">
+                                                            <p class="main-chat-user-mensage-p"><%= element.mensage %></p>
+                                                        </div>
+                                                    </div>
+                                                </div> 
+                                            <% }else if(element.command){ %>
+                                                <div class="main-chat-command-col">
+                                                    <div class="main-chat-command-col-content">
+                                                        <div class="main-chat-command-text">
+                                                            <p class="main-chat-command-text-p"><%= element.mensageDate %></p>
+                                                            <h1 class="main-chat-command-text-h1">O Usuário <b><%= element.userName %></b> adicionou a música <b><%= element.resCommand.musica %></b> a fila de reprodução!</h1>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div> 
+                                            <% } %>
                                         <% }) %>
                                     </div>
                                 </div>
@@ -66,7 +89,7 @@
                                         <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="m256 512c-68.378906 0-132.667969-26.628906-181.019531-74.980469-48.351563-48.351562-74.980469-112.640625-74.980469-181.019531s26.628906-132.667969 74.980469-181.019531c48.351562-48.351563 112.640625-74.980469 181.019531-74.980469s132.667969 26.628906 181.019531 74.980469c48.351563 48.351562 74.980469 112.640625 74.980469 181.019531s-26.628906 132.667969-74.980469 181.019531c-48.351562 48.351563-112.640625 74.980469-181.019531 74.980469zm0-482c-60.367188 0-117.121094 23.507812-159.804688 66.195312-42.6875 42.683594-66.195312 99.4375-66.195312 159.804688s23.507812 117.121094 66.195312 159.804688c42.683594 42.6875 99.4375 66.195312 159.804688 66.195312s117.121094-23.507812 159.804688-66.195312c42.6875-42.683594 66.195312-99.4375 66.195312-159.804688s-23.507812-117.121094-66.195312-159.804688c-42.683594-42.6875-99.4375-66.195312-159.804688-66.195312zm0 0"></path><path d="m255.964844 379.308594c-36.738282 0-70.96875-19.792969-89.328125-51.652344-4.136719-7.179688-1.671875-16.351562 5.507812-20.484375 7.175781-4.140625 16.347657-1.671875 20.484375 5.503906 13.019532 22.597657 37.289063 36.632813 63.335938 36.632813 25.996094 0 50.238281-13.996094 63.273437-36.527344 4.148438-7.171875 13.324219-9.621094 20.496094-5.472656 7.171875 4.148437 9.621094 13.324218 5.472656 20.496094-18.378906 31.765624-52.574219 51.503906-89.242187 51.503906zm0 0"></path><path d="m178.667969 250.019531c-22.578125 0-40.949219-18.367187-40.949219-40.949219 0-22.578124 18.371094-40.949218 40.949219-40.949218 22.582031 0 40.949219 18.371094 40.949219 40.949218 0 22.578126-18.367188 40.949219-40.949219 40.949219zm0-51.898437c-6.035157 0-10.949219 4.910156-10.949219 10.949218 0 6.039063 4.914062 10.949219 10.949219 10.949219 6.039062 0 10.949219-4.910156 10.949219-10.949219 0-6.039062-4.910157-10.949218-10.949219-10.949218zm0 0"></path><path d="m332.222656 250.019531c-22.578125 0-40.949218-18.367187-40.949218-40.949219 0-22.578124 18.371093-40.949218 40.949218-40.949218s40.949219 18.371094 40.949219 40.949218c0 22.578126-18.367187 40.949219-40.949219 40.949219zm0-51.898437c-6.039062 0-10.949218 4.910156-10.949218 10.949218 0 6.039063 4.914062 10.949219 10.949218 10.949219 6.039063 0 10.949219-4.910156 10.949219-10.949219 0-6.039062-4.910156-10.949218-10.949219-10.949218zm0 0"></path></svg>
                                     </div>
                                     <div id="input-mensage-content">
-                                        <input type="text" id="input-mensage" placeholder="Escreva uma Mensagem">
+                                        <input type="text" maxlength="400" id="input-mensage" placeholder="Escreva uma Mensagem">
                                     </div>
                                     <div id="send-mensage">
                                         <svg id="send-mensage-svg" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512.001 512.001" style="enable-background:new 0 0 512.001 512.001;" xml:space="preserve"><g><g><g><path d="M483.927,212.664L66.967,25.834C30.95,9.695-7.905,42.024,1.398,80.367l21.593,89.001 c3.063,12.622,11.283,23.562,22.554,30.014l83.685,47.915c6.723,3.85,6.738,13.546,0,17.405l-83.684,47.915 c-11.271,6.452-19.491,17.393-22.554,30.015L1.398,431.633c-9.283,38.257,29.507,70.691,65.569,54.534l416.961-186.83 C521.383,282.554,521.333,229.424,483.927,212.664z M468.609,265.151l-416.96,186.83c-7.618,3.417-15.814-3.398-13.845-11.516 l21.593-89.001c0.647-2.665,2.383-4.975,4.761-6.337l83.685-47.915c31.857-18.239,31.887-64.167,0-82.423l-83.685-47.916 c-2.379-1.362-4.115-3.672-4.761-6.337L37.804,71.535c-1.945-8.016,6.128-14.975,13.845-11.514L468.61,246.85 C476.522,250.396,476.542,261.596,468.609,265.151z"></path><path d="M359.268,238.907l-147.519-66.1c-9.444-4.231-20.523-0.005-24.752,9.435c-4.231,9.44-0.006,20.523,9.434,24.752 L305.802,256l-109.37,49.006c-9.44,4.231-13.664,15.313-9.434,24.752c4.231,9.443,15.312,13.663,24.752,9.435l147.519-66.101 C373.996,266.495,374.006,245.51,359.268,238.907z"></path></g></g></g></svg>
@@ -103,8 +126,25 @@
                                 </div>
                             </div>
                         </div>
+
                         <div id="options-containner">
-                            options
+                            <div id="options-title-containner">
+                                <h1 id="options-title-h1">Opções</h1>
+                            </div>
+                            <div id="options-content">
+                                <div id="options-button-content">
+                                    <svg class="options-button-class" id="options-button-back-music" enable-background="new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="m234.035 511.997c8.829 0 17.487-3.456 24.007-9.976.13-.13.259-.262.386-.395l212.221-222.208c.049-.051.097-.103.146-.154 12.241-13.046 12.241-33.483 0-46.529-.049-.052-.097-.104-.146-.154l-212.221-222.208c-.127-.133-.256-.265-.386-.395-9.759-9.759-24.304-12.65-37.053-7.37-12.751 5.282-20.989 17.612-20.989 31.413v443.959c0 13.801 8.238 26.131 20.989 31.412 4.232 1.753 8.659 2.605 13.046 2.605zm13.965-443.044 178.64 187.047-178.64 187.047z"></path><path d="m116 512c24.262 0 44-19.738 44-44v-424c0-24.262-19.738-44-44-44h-40c-24.262 0-44 19.738-44 44v424c0 24.262 19.738 44 44 44zm-36-464h32v416h-32z"></path></svg>
+                                    <div id="options-button-play-music-containner">
+                                        <svg class="options-button-class" style="display: none;" id="options-button-pause-music" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g data-name="Layer 33"><path d="m24 2h-3a3 3 0 0 0 -3 3v22a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3v-22a3 3 0 0 0 -3-3zm1 25a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1-1v-22a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1zm-14-25h-3a3 3 0 0 0 -3 3v22a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3v-22a3 3 0 0 0 -3-3zm1 25a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1-1v-22a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1z"></path></g></svg>
+                                        <svg class="options-button-class" id="options-button-play-music" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 155.908 155.908" xml:space="preserve"><g><path d="M143.878,58.015L46.02,6.45c-9.816-5.172-21.348-4.838-30.848,0.894C5.672,13.076,0,23.122,0,34.218v87.473 c0,11.096,5.672,21.142,15.172,26.874c5.018,3.028,10.601,4.549,16.2,4.549c5.001,0,10.016-1.215,14.647-3.655l97.858-51.566 c7.42-3.91,12.03-11.55,12.03-19.938S151.298,61.926,143.878,58.015z M135.486,81.968l-97.858,51.566 c-4.249,2.239-9.045,2.101-13.157-0.381C20.358,130.671,18,126.493,18,121.69V34.218c0-4.803,2.358-8.981,6.471-11.462 c2.169-1.309,4.529-1.966,6.898-1.966c2.122,0,4.251,0.527,6.259,1.585l97.858,51.565c2.186,1.152,2.422,3.191,2.422,4.014 S137.672,80.816,135.486,81.968z"></path></g></svg>
+                                    </div>
+                                    <svg class="options-button-class" id="options-button-next-music" enable-background="new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="m234.035 511.997c8.829 0 17.487-3.456 24.007-9.976.13-.13.259-.262.386-.395l212.221-222.208c.049-.051.097-.103.146-.154 12.241-13.046 12.241-33.483 0-46.529-.049-.052-.097-.104-.146-.154l-212.221-222.208c-.127-.133-.256-.265-.386-.395-9.759-9.759-24.304-12.65-37.053-7.37-12.751 5.282-20.989 17.612-20.989 31.413v443.959c0 13.801 8.238 26.131 20.989 31.412 4.232 1.753 8.659 2.605 13.046 2.605zm13.965-443.044 178.64 187.047-178.64 187.047z"></path><path d="m116 512c24.262 0 44-19.738 44-44v-424c0-24.262-19.738-44-44-44h-40c-24.262 0-44 19.738-44 44v424c0 24.262 19.738 44 44 44zm-36-464h32v416h-32z"></path></svg>
+                                </div>
+                                <div id="options-volume-content">
+                                    <svg id="options-volume-svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"><g><g><path d="M224.511,85.363l-113.319,87.168H50.087C22.469,172.531,0,195,0,222.618V289.4c0,27.618,22.469,50.087,50.087,50.087 h61.105l113.319,87.168c21.916,16.859,53.75,1.274,53.75-26.466V111.829C278.261,84.134,246.452,68.481,224.511,85.363z M100.174,306.096H50.087c-9.206,0-16.696-7.49-16.696-16.696v-66.783c0-9.206,7.49-16.696,16.696-16.696h50.087V306.096z M244.87,400.189l-111.304-85.619V197.447l111.304-85.619V400.189z"></path></g></g><g><g><path d="M438.649,78.916c-6.52-6.52-17.092-6.52-23.611,0c-6.52,6.52-6.52,17.091,0,23.611 c40.995,40.995,63.57,95.499,63.57,153.473s-22.576,112.479-63.57,153.473c-6.52,6.52-6.52,17.091,0,23.611 c6.519,6.52,17.091,6.52,23.611,0C485.95,385.783,512,322.894,512,256S485.95,126.217,438.649,78.916z"></path></g></g><g><g><path d="M391.427,126.139c-6.518-6.519-17.09-6.52-23.611,0c-6.52,6.52-6.52,17.091,0,23.611 c58.586,58.586,58.586,153.914,0,212.501c-6.52,6.52-6.52,17.091,0,23.611c6.519,6.519,17.091,6.52,23.611,0 C463.033,314.257,463.033,197.744,391.427,126.139z"></path></g></g><g><g><path d="M344.204,173.361c-6.519-6.52-17.091-6.52-23.611,0s-6.52,17.091,0,23.611c32.548,32.549,32.548,85.507,0,118.056 c-6.52,6.52-6.52,17.091,0,23.611c6.519,6.52,17.091,6.521,23.611,0C389.771,293.072,389.771,218.929,344.204,173.361z"></path></g></g></svg>
+                                    <input type="range" id="volumeRange" min="0" max="100" step="1">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -116,12 +156,14 @@
     </div>
     
     <div>
-       <div> <audio hidden controls id="audioTag"></audio> </div>
+        <div> <audio autoplay hidden controls id="audioTag"></audio> </div>
+        <div> <div id="getRoomObg" data-room="<%= JSON.stringify(room) %>"></div></div>
         <script>
             var uid = '<%= myUser.uid %>'
             var joinroom = '<%= myUser.joinroom %>'
             var profilePic = '<%= myUser.profilePic %>'
             var displayName = '<%= myUser.displayName %>'
+            var room = JSON.parse(document.getElementById('getRoomObg').getAttribute('data-room'))
         </script>
     </div>
     <%- include('./reusable/script.ejs') %>

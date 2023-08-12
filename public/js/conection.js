@@ -73,7 +73,6 @@ document.querySelectorAll('.server-list-col').forEach((element,index)=>{
             success: function(response) {
                 if (response.success == true) {
                     let room = response.room
-                    console.log(response);
                     document.getElementById('server-list-right-containner').innerHTML = `
                             <div id="server-list-right-content">
                             <div id="server-list-right-top-infos">

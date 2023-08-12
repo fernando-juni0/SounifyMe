@@ -15,6 +15,7 @@ const { getAuth,fetchSignInMethodsForEmail } = require('firebase/auth')
 const cloudinary = require('cloudinary')
 const ytdl = require('ytdl-core');
 const cors = require('cors');
+const axios = require('axios');
 
 // let servers = require('./config/originals-servers')
 const app = express();
@@ -82,25 +83,175 @@ cloudinary.config({
 //TODO----------------SOCKET------------------
 
 
-
 // para pegar as infos do video e a url
 
 
 io.on('connection', async(socket) => {
+    socket.on('initVote',async(data)=>{
+        io.to(data.roomID).emit('reqVote', data)
+    })
+    socket.on('resVote',async(data)=>{
+        if (data.numberVotes > data.numberRecuses) {
+            console.log(data);
+            functions.percentualNumber(data.numberVotes,data.roomUserNumber,80).then((res)=>{
+                if (res == true) {
+                    console.log(true);
+                    socket.to(data.roomID).emit('resultVote',data, true);
+                }else{
+                    console.log(false);
+                    socket.to(data.roomID).emit('resultVote',data, false);
+                }
+            })
+        }else{
+            console.log(2);
+            socket.to(data.roomID).emit('resultVote',data,false);
+        }
+        
+        
+    })
+
+
+    socket.on("reqTimeMusic",async(user,room)=>{
+        io.to(room).emit('TimeMusicPost', user,room)
+    })
+
+    socket.on('resTimeMusic',async(data)=>{
+        //TODO(UPDATE)  adicionar o script de frequencia que esta no functions ,
+        io.to(data.room).emit('TimeMusicGet',data)
+    })
 
     socket.on('getCommand', async(data)=>{
         switch (data.command) {
             case '/play':
-                const info = await ytdl.getInfo(data.link);
-                const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
-                const thumbnailURL = info.videoDetails.thumbnails[0].url;
-                const tituloDoVideo = info.videoDetails.title;
+                function removerTextosIndesejados(texto) {
+                    const padroes = [
+                      /\(Vídeo Oficial\)/g,
+                      /\(Official Lyric Video\)/g,
+                      /\(Legendado\)/g,
+                      /\(Official Music Video\)/g,
+                      /\(tradução\)/g,
+                      /\(legendado\)/g
+                    ];
+                  
+                    padroes.forEach(p => {
+                      texto = texto.replace(p, '');
+                    });
+                  
+                    return texto;
+                }
+                async function validLinkType(data) {
+                    switch (data.type) {
+                        case 'youtube':
+                            if (ytdl.validateURL(data.link)) {
+                                if (ytdl.getURLVideoID(data.link)) {
+                                    console.log('O link é um vídeo individual.');
+                                } else if (ytdl.getURLPlaylistID(data.link)) {
+                                    console.log('O link é uma playlist.');
+                                } else {
+                                    console.log('O link não é um vídeo nem uma playlist válida.');
+                                }
+                            } else {
+                                console.log('O link não é válido para o YouTube.');
+                            }
+                            const info = await ytdl.getInfo(data.link);
+                            const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
+                            const thumbnailURL = info.videoDetails.thumbnails[0].url;
+                            const tituloDoVideo = info.videoDetails.title;
+                            const match = tituloDoVideo.match(/^(.*?)\s*-\s*(.*)$/);
+                            var banda = null
+                            var musica = null
+
+                            if (match) {
+                                banda = match[1].trim()
+                                musica = await removerTextosIndesejados(match[2].trim())
+                            } else {
+                                musica =await removerTextosIndesejados(tituloDoVideo);
+                                banda = null
+                            }
+                            return {
+                                link:link,
+                                thumbnail:thumbnailURL,
+                                banda:banda,
+                                musica:musica
+                            }
+                            break;
+                        case 'songName':
+                            return await functions.searchTrackLink(data.link)
+                            break;
+                        case 'spotify':
+                            const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(data.link)}`);
+                            const data2 = await response2.json();
+                            
+                            const infoRES = await ytdl.getInfo(data2.linksByPlatform.youtube.url);
+                            const linkRES = ytdl.chooseFormat(infoRES.formats, { filter: 'audioonly' }).url
+                            const resInfos = data2.entitiesByUniqueId[data2.entityUniqueId]
+                            return {
+                                thumbnail: resInfos.thumbnailUrl,
+                                musica: resInfos.title,
+                                banda: resInfos.artistName,
+                                link: linkRES,
+                            };
+                            break
+                        default:
+                            break;
+                    }
+                }
+            
+                
+               
+
+                let verifyLinkResult = await validLinkType(data)
                 io.to(data.room).emit('receiveCommand', {command:data.command,user:data.user, date:data.date, linkInfos:{
-                    link:link,
-                    thumbnail:thumbnailURL,
-                    title:tituloDoVideo,
+                    link:verifyLinkResult.link,
+                    thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
+                    banda:verifyLinkResult.banda,
+                    musica:verifyLinkResult.musica
                 }});
+
+                await db.update('Conections',data.room,{
+                    musicaAtual:{
+                        link:verifyLinkResult.link,
+                        thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
+                        banda:verifyLinkResult.banda,
+                        musica:verifyLinkResult.musica
+                    }
+                })
+                
+                let roomData = await db.findOne({colecao:'Conections',doc:data.room})
+                let mensageObj = await roomData.mensages
+                await mensageObj.push({
+                    userUID:data.user.uid,
+                    mensageDate: data.date,
+                    userName: data.user.displayName,
+                    userPic: data.user.profilePic,
+                    command:data.command,
+                    resCommand:{
+                        link:verifyLinkResult.link,
+                        thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
+                        banda:verifyLinkResult.banda,
+                        musica:verifyLinkResult.musica
+                    }
+                })
+                await db.update('Conections',data.room,{
+                    mensages:mensageObj
+                })
                 break;
+            case '/clear':
+                switch (data.action) {
+                    case 'apagar o chat':
+                        io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,});
+                        await db.update('Conections',data.roomID,{
+                            mensages:[]
+                        })
+                        break;
+                    case 'parar a musica atual':
+                        io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,});
+                        await db.update('Conections',data.roomID,{
+                            musicaAtual:{}
+                        })
+                        break;
+                    
+                }
             default:
                 break;
         }
@@ -126,7 +277,7 @@ io.on('connection', async(socket) => {
     socket.on('joinRoom',async (data) => {
         let myUser = await db.findOne({colecao:'users',doc:data.uid})
         var room = await db.findOne({colecao:"Conections",doc:data.roomID})
-
+        
         var pessoas = room.pessoas
         socket.join(data.roomID);
         if (pessoas.includes(myUser.uid)) {
@@ -135,7 +286,6 @@ io.on('connection', async(socket) => {
 
         socket.user = myUser
         socket.room = data.roomID
-
         await db.update('users',data.uid,{
             joinroom: data.roomID,
         })
@@ -143,7 +293,8 @@ io.on('connection', async(socket) => {
         await db.update('Conections',data.roomID,{
             pessoas:pessoas
         })
-        socket.broadcast.emit('join_user','Um novo usuário se conectou!');
+       
+        socket.broadcast.emit('join_user',myUser.uid);
     });
     socket.on('leaveRoom', async(data) => {
         var room = await db.findOne({colecao:"Conections",doc:data.roomID})
@@ -165,12 +316,14 @@ io.on('connection', async(socket) => {
         await db.update('Conections',data.roomID,{
             pessoas: await removePessoa
         })
+        socket.broadcast.emit('leave_user',data.uid);
         socket.leave(data.roomID)
     });
+
     socket.on('disconnect',async()=>{
         if (socket.user) {
             var room = await db.findOne({colecao:"Conections",doc:socket.room})
-        
+            socket.leave(socket.room)
             var pessoas = room.pessoas
             
             if (pessoas.includes(socket.user.uid)) {
@@ -189,7 +342,7 @@ io.on('connection', async(socket) => {
             await db.update('Conections',socket.room,{
                 pessoas: await removePessoa
             })
-            socket.leave(socket.room)
+            socket.broadcast.emit('leave_user',socket.user.uid);
         }
     })
 });
@@ -203,6 +356,20 @@ io.on('connection', async(socket) => {
 
 app.post('/firebaseApp',(req,res)=>{
     res.send(require('./config/index-config').firebaseConfig)
+})
+
+app.post('/getRoom/:roomID',async(req,res)=>{
+    var responseData = {}
+
+    let room = await db.findOne({colecao:'Conections',doc:req.params.roomID})
+    if (room) {
+        responseData.success = true
+        responseData.room = room
+    }else{
+        responseData.success = false
+        responseData.room = null
+    }
+    res.status(200).json(responseData);
 })
 
 //TODO-----------GET CONFIGS-----------------
