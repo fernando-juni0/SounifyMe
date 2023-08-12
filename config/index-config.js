@@ -6,7 +6,10 @@ module.exports = {
         resave: false, 
         saveUninitialized: false,
     },
-    port: process.env.PORT || 80,
+    port: process.env.PORT || 3000,
     serviceAccount: require('../config/sounifyme-firebase-admin.json'),
     firebaseConfig: require('../config/firebase-config.json'),
+    lastFmKey: '59af3a6cb9bba4735bd9bb9d47485c47',
+    spotifyClientId: '16ed8fdb95de4ea5a6fda5434762a574',
+    spotifyClientSecret:'ba9ecc5eacf74472b42bb5f27d31cf7c'
 }

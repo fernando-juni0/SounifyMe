@@ -24,7 +24,7 @@ class AppController{
 
         Element.prototype.hide = function () {
             //Esconde os elementos da pagina
-            this.style.display = 'none';
+            this.style.display = 'none ';
             return this
         }
 

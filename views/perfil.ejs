@@ -5,7 +5,7 @@
     <title>Perfil - <%= userProfile.displayName %></title>
     <link rel="stylesheet" href="../public/css/perfil.css">
 </head>
-<body>
+<body data-isMy="<%= userProfile.isMyProfile %>">
     <div id="body-containner">
         <%- include('./reusable/reload.ejs') %>
         <div id="containner">
@@ -82,6 +82,7 @@
                         </div>
                         <div id="circle-banner-containner">
                             <div id="edit-banner-img">
+                                <input type="file" hidden name="profileBannerImg" id="profile-banner-input-img">
                                 <div id="circle-img" class="circle-containner flex-center">
                                     <img src="../public/assets/svg/icons8-adicionar-imagem-48 (1).png">
                                 </div>
@@ -96,12 +97,20 @@
                         </div>
                     </div>
                 </div>
+                <div id="edit-banner-color-containner" class="flex-containner">
+                    <div id="close-popup-banner-edit-color" class="flex-containner"></div>
+                    <div id="edit-banner-color-content">
+                        <div id="preview-color"><input type="color" style="opacity: 0;" name="profileBannerColor" id="profile-banner-input-color"></div>
+                        <div id="button-containner">
+                            <button id="save-color-banner">Salvar</button>
+                        </div>
+                    </div>
+                </div>
             <% } %>
-            <main id="main-containner" >
+            <main id="main-containner">
                <div id="main-content">
                     <div id="perfil-continner">
                         <div id="banner-continner" data-type="<%= userProfile.banner.type %>">
-                            <input type="file" hidden name="profileBanner" id="profile-banner-input">
                             <% if (userProfile.banner.type == 'color') { %>
                                 <div id="banner-color" data-color="<%= userProfile.banner.content %>">
                                     <% if (userProfile.isMyProfile == true) { %> 
@@ -143,6 +152,33 @@
                                         </div>
                                      <% } %> 
                                     
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="library-containnner">
+                        <div id="library-content">  
+                            <div id="library-row-containnner">
+                                <div class="library-row">
+                                    <div class="library-row-title">
+                                        <h1 class="h1-title">Playlists</h1>
+                                    </div>
+                                    <div class="library-col-containner">
+                                        <div class="library-col">
+                                            <div class="library-col-img-containner">
+                                                <img src="../public/img/exempleImg.jpg" alt="" class="library-col-img">
+                                            </div>
+                                            <div class="library-col-desc-containner">
+                                                <div class="library-col-desc-title">
+                                                    <p class="p-desc-title">PlaylistTeste</p>
+                                                </div>
+                                                <div class="library-col-desc-music-number">
+                                                    <p class="p-desc-music-number">10 Musicas</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

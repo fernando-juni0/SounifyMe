@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 const models = require('./Firebase/models');
-
+const ytdl = require('ytdl-core');
 
 module.exports = {
     isAuthenticated: async (req, res, next)=> {
@@ -32,7 +32,7 @@ module.exports = {
             return null;
         }
     },
-    removeArrayEmpty: async (array)=>{
+    removeArrayEmpty: (array)=>{
         var arrayFilter = array.filter(function(elemento) {
             return elemento !== '' && elemento !== null && elemento !== undefined;
         });
@@ -43,7 +43,7 @@ module.exports = {
         }
         return arrayFilter
     },
-    numberFormater: async (array)=>{
+    numberFormater: (array)=>{
         // -----
 
         // inacabado!!!!!!!!!!!
@@ -90,7 +90,7 @@ module.exports = {
             return arrayFormatado;
         }
     },
-    stringLimit: async (str,maxLength)=>{
+    stringLimit: (str,maxLength)=>{
         if (str.length <= maxLength) {
             return str; // Retorna a string original se já estiver dentro do tamanho desejado
         } else {
@@ -129,5 +129,95 @@ module.exports = {
         })
         return await Promise.all(userData)
         
+    },
+    userModel: async (result,removeArrayEmpty)=>{
+        let seguindo = removeArrayEmpty(result.folowInfo.seguindo)
+        let playlist = removeArrayEmpty(result.playlist)
+        let seguidores = removeArrayEmpty(result.folowInfo.seguidores)
+        return {
+            uid: result.uid,
+            profilePic: result.profilePic,
+            email: result.email,
+            displayName: result.displayName,
+            banda: result.banda,
+            banner:result.banner,
+            folowInfo: {
+                seguindo,
+                seguidores
+            },
+            playlist: playlist,
+            playlistString: JSON.stringify(playlist),
+            joinroom:result.joinroom
+        }
+    },
+    frequenceData: async (dadosRecebidos)=>{
+        if (dadosRecebidos.length === 0) {
+            console.log('Ainda não há dados recebidos.');
+            return null;
+        }
+    
+        // Crie um objeto para armazenar a contagem dos dados
+        const contador = {};
+    
+        // Percorra o array de dados recebidos e conte a frequência de cada dado
+        dadosRecebidos.forEach(dado => {
+            contador[dado] = (contador[dado] || 0) + 1;
+        });
+    
+        // Encontre o dado com a maior frequência
+        let dadoMaisFrequente = dadosRecebidos[0];
+        let frequenciaMaisAlta = contador[dadosRecebidos[0]];
+    
+        for (const dado in contador) {
+            if (contador[dado] > frequenciaMaisAlta) {
+            frequenciaMaisAlta = contador[dado];
+            dadoMaisFrequente = dado;
+            }
+        }
+    
+        console.log('Dado mais frequente:', dadoMaisFrequente);
+        console.log('Frequência:', frequenciaMaisAlta);
+        return dadoMaisFrequente
+    },
+    percentualNumber: async (initialValue,finalValue,thresholdPercentage)=>{
+        const thresholdValue = (initialValue * thresholdPercentage) / 100;
+        
+        if (finalValue >= thresholdValue) {
+            return true
+        }else{
+            return false
+        } 
+    },
+    searchTrackLink:async (songName)=> {
+        const accessToken = await require('./Firebase/authentication').authenticateSpotify();
+      
+        const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(songName)}&type=track`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+      
+        const data = await response.json();
+        
+        if (data.tracks && data.tracks.items.length > 0) {
+            const track = data.tracks.items[0];
+            const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(track.external_urls.spotify)}`);
+            const data2 = await response2.json();
+            
+            const info = await ytdl.getInfo(data2.linksByPlatform.youtube.url);
+            const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
+            const trackInfo = {
+                thumbnail: track.album.images[0].url,
+                musica: track.name,
+                banda: track.artists[0].name,
+                link: link,
+            };
+            return trackInfo;
+        } else {
+          console.log('Nenhuma música encontrada.');
+        }
     }
+    
 }
+module.exports.removeArrayEmpty = module.exports.removeArrayEmpty.bind(module.exports);
+module.exports.numberFormater = module.exports.numberFormater.bind(module.exports);

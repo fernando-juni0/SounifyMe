@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cortar Imagem</title>
+  <style>
+    #canvas {
+      position: relative;
+      border: 2px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cortar Imagem</h1>
+  
+  <input type="file" id="inputImagem" accept="image/*">
+  
+  <div id="uploadMessage" style="display: none;">Carregando imagem...</div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <img hidden id="imagem" alt="Imagem">
+  
+  <div id="divCaixa" style="position: absolute; border: 2px dashed blue; pointer-events: none;"></div>
+  
+  <button id="btnCortar">Cortar</button>
+  
+  <img id="imagemCortada" alt="Imagem Cortada">
+  
+  <script>
+// Variáveis globais
+var imagem = null;
+var canvas = null;
+var ctx = null;
+var startX = 100; // Posição X inicial da caixa de seleção
+var startY = 100; // Posição Y inicial da caixa de seleção
+var boxWidth = 200; // Largura da caixa de seleção
+var boxHeight = 200; // Altura da caixa de seleção
+var caixaSegurada = false; // Indica se a caixa está sendo segurada
+var caixaOffsetX = 0; // Deslocamento X da caixa de seleção em relação ao mouse
+var caixaOffsetY = 0; // Deslocamento Y da caixa de seleção em relação ao mouse
+
+// Função para inicializar a aplicação
+function iniciar() {
+  // Obtém os elementos HTML
+  imagem = document.getElementById('imagem');
+  canvas = document.getElementById('canvas');
+  ctx = canvas.getContext('2d');
+  
+  // Define o tamanho do canvas igual ao tamanho da imagem
+  canvas.width = imagem.width;
+  canvas.height = imagem.height;
+  
+  // Desenha a imagem e a caixa de seleção inicial
+  desenharImagem();
+  desenharCaixaSelecao();
+  
+  // Adiciona os eventos de clique e movimento do mouse
+  canvas.addEventListener('mousedown', segurarCaixa);
+  canvas.addEventListener('mouseup', soltarCaixa);
+  canvas.addEventListener('mousemove', moverCaixa);
+  
+  // Adiciona o evento de clique no botão "Cortar"
+  document.getElementById('btnCortar').addEventListener('click', cortarImagem);
+}
+
+// Função para desenhar a imagem no canvas
+function desenharImagem() {
+  ctx.drawImage(imagem, 0, 0);
+}
+
+// Função para desenhar a caixa de seleção
+function desenharCaixaSelecao() {
+  // Desenha a imagem
+  desenharImagem();
+  
+  // Desenha a área fora do corte com cor preta e opacidade
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(0, 0, startX, canvas.height);
+  ctx.fillRect(startX + boxWidth, 0, canvas.width - startX - boxWidth, canvas.height);
+  ctx.fillRect(startX, 0, boxWidth, startY);
+  ctx.fillRect(startX, startY + boxHeight, boxWidth, canvas.height - startY - boxHeight);
+  
+  // Desenha a linha da área de corte
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(startX, startY, boxWidth, boxHeight);
+}
+
+// Função para atualizar as posições X e Y da caixa de seleção
+function moverCaixa(evento) {
+  if (caixaSegurada) {
+    var mouseX = evento.clientX - canvas.getBoundingClientRect().left;
+    var mouseY = evento.clientY - canvas.getBoundingClientRect().top;
+    
+    startX = mouseX - caixaOffsetX;
+    startY = mouseY - caixaOffsetY;
+    
+    // Mantém a caixa de seleção dentro dos limites da imagem
+    if (startX < 0) startX = 0;
+    if (startX + boxWidth > canvas.width) startX = canvas.width - boxWidth;
+    if (startY < 0) startY = 0;
+    if (startY + boxHeight > canvas.height) startY = canvas.height - boxHeight;
+    
+    desenharCaixaSelecao();
+  }
+}
+
+// Função para segurar a caixa de seleção
+function segurarCaixa(evento) {
+  var mouseX = evento.clientX - canvas.getBoundingClientRect().left;
+  var mouseY = evento.clientY - canvas.getBoundingClientRect().top;
+  
+  if (
+    mouseX >= startX &&
+    mouseX <= startX + boxWidth &&
+    mouseY >= startY &&
+    mouseY <= startY + boxHeight
+  ) {
+    caixaSegurada = true;
+    caixaOffsetX = mouseX - startX;
+    caixaOffsetY = mouseY - startY;
+  }
+}
+
+// Função para soltar a caixa de seleção
+function soltarCaixa() {
+  caixaSegurada = false;
+}
+
+// Função para cortar a imagem
+function cortarImagem() {
+  // Cria um novo canvas para o recorte
+  var canvasRecorte = document.createElement('canvas');
+  var ctxRecorte = canvasRecorte.getContext('2d');
+  
+  // Define o tamanho do canvas de recorte
+  canvasRecorte.width = boxWidth;
+  canvasRecorte.height = boxHeight;
+  
+  // Realiza o recorte da imagem original para o canvas de recorte
+  ctxRecorte.drawImage(imagem, startX, startY, boxWidth, boxHeight, 0, 0, boxWidth, boxHeight);
+  
+  // Obtém a URL da imagem cortada
+  var imagemCortada = canvasRecorte.toDataURL();
+  
+  // Exibe a imagem cortada
+  document.getElementById('imagemCortada').src = imagemCortada;
+}
+
+// Chama a função de inicialização
+iniciar();
+
+  </script>
+  <script>
+    // Função para carregar a imagem selecionada
+    function carregarImagem(evento) {
+      var input = evento.target;
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+          var imagem = document.getElementById('imagem');
+          imagem.src = e.target.result;
+          imagem.onload = function() {
+            iniciar();
+            document.getElementById('uploadMessage').style.display = 'none';
+            document.getElementById('canvas').style.display = 'block';
+          }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+    
+    // Adiciona o evento de alteração do input de arquivo
+    document.getElementById('inputImagem').addEventListener('change', function(evento) {
+      var input = evento.target;
+      
+      if (input.files && input.files[0]) {
+        document.getElementById('uploadMessage').style.display = 'block';
+        document.getElementById('canvas').style.display = 'none';
+        carregarImagem(evento);
+      }
+    });
+  </script>
+</body>
+</html>
+
+

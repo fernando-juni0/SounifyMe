@@ -12,6 +12,10 @@ let folowInfoPopup = document.getElementById('folow-info-popup-containner')
 
 var pageinPageSeguidores = 1
 var pageinPageSeguindo = 1
+
+let isMyProfile = Boolean(document.getElementsByTagName('body')[0].getAttribute('data-isMy'))
+document.getElementsByTagName('body')[0].removeAttribute('data-isMy')
+
 function resetFolowPopups() {
     document.querySelector("#seguindo-popup .folow-info-row").innerHTML = ``
     document.querySelector("#seguidores-popup .folow-info-row").innerHTML = ``
@@ -66,6 +70,21 @@ document.querySelector('.banner-profile-class').addEventListener('click',()=>{
     document.getElementById('edit-banner-containner').show("flex")
 })
 
+document.getElementById('edit-banner-img').addEventListener('click',(event)=>{
+    document.getElementById('profile-banner-input-img').click()
+})
+document.getElementById('preview-color').addEventListener('click',(event)=>{
+    document.getElementById('profile-banner-input-color').click()
+})
+document.getElementById('edit-banner-color').addEventListener('click',()=>{
+    document.getElementById('edit-banner-color-containner').show("flex")
+})
+document.getElementById('close-popup-banner-edit-color').addEventListener('click',()=>{
+    document.getElementById('edit-banner-color-containner').hide()
+})
+document.getElementById('save-color-banner').addEventListener('click',()=>{
+    document.getElementById('edit-banner-color-containner').hide()
+})
 
 async function folowInfoPopupUserAdd(users,page,plus) {
     await users.forEach(element => {
@@ -244,7 +263,6 @@ if (document.getElementById('button-seguir')) {
                 } ),
                 dataType: 'json',
                 success: function(response) {
-                    console.log(response);
                     if (response.success == true) {
                         buttonSeguir.setAttribute('data-folow',false)
                         buttonSeguir.classList.remove('seguindo')
@@ -297,9 +315,9 @@ document.getElementById('save-edit').addEventListener('click',async()=>{
             processData: false,
             contentType: false,  
             success: function(response) {
-                console.log(response);
                 if (response.success == true) {
                     if (response.displayName) {
+                        document.getElementsByTagName('title')[0].innerHTML = `Perfil - ${response.displayName}`
                         document.getElementById("displayName-profile").innerHTML = response.displayName
                         document.querySelector('#displayName span').innerHTML = response.displayName
                     }
@@ -336,9 +354,9 @@ document.getElementById('save-edit').addEventListener('click',async()=>{
             } ),
             dataType: 'json', 
             success: function(response) {
-                console.log(response);
                 if (response.success == true) {
                     if (response.displayName) {
+                        document.getElementsByTagName('title')[0].innerHTML = `Perfil - ${response.displayName}`
                         document.getElementById("displayName-profile").innerHTML = response.displayName
                         document.querySelector('#displayName span').innerHTML = response.displayName
                     }
@@ -355,12 +373,11 @@ document.getElementById('save-edit').addEventListener('click',async()=>{
 })
 
 
-
-document.getElementById('profile-banner-input').addEventListener('change',(event)=>{
+document.getElementById('profile-banner-input-img').addEventListener('change',(event)=>{
     let Imgfile = event.target.files[0]
     var formData = new FormData();
         formData.append('file', Imgfile);
-        formData.append('inputValue', displayNameValue);
+        formData.append('type', "image");
         $.ajax({
             traditional: true,
             url: '/editProfileBanner/' + uid,
@@ -369,9 +386,36 @@ document.getElementById('profile-banner-input').addEventListener('change',(event
             processData: false,
             contentType: false,  
             success: function(response) {
-                console.log(response);
                 if (response.success == true) {
-                    console.log(1);
+                    if (Imgfile) {
+                        if (isMyProfile == true) {
+                            document.getElementById("banner-continner").innerHTML = ` 
+                                <div id="banner-img"> 
+                                    <div class="banner-profile-class"></div>
+                                    <img src="">
+                                </div>
+                            `
+                        }else{
+                            document.getElementById("banner-continner").innerHTML = ` 
+                                <div id="banner-img">
+                                    <img src="">
+                                </div>
+                            `
+                        }
+                        document.querySelector('.banner-profile-class').addEventListener('click',()=>{
+                            document.getElementById('edit-banner-containner').show("flex")
+                        })
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.querySelector('#banner-img img').src = e.target.result;
+                        };
+                        reader.readAsDataURL(Imgfile);
+                        
+                    }else{
+                        setTimeout(()=>{
+                            location.reload()
+                        },3000)
+                    }
 
                 }
                 
@@ -380,4 +424,50 @@ document.getElementById('profile-banner-input').addEventListener('change',(event
                 console.error(error);
             }
         })
+})
+
+if (document.getElementById('banner-color')) {
+    document.getElementById('banner-color').style.backgroundColor =  document.getElementById('banner-color').getAttribute('data-color')
+    document.getElementById('profile-banner-input-color').value = document.getElementById('banner-color').getAttribute('data-color')
+    document.getElementById('preview-color').style.backgroundColor = document.getElementById('banner-color').getAttribute('data-color')
+}
+document.getElementById('profile-banner-input-color').addEventListener('change',(event)=>{
+    document.getElementById('preview-color').style.backgroundColor = document.getElementById('profile-banner-input-color').value
+})
+
+document.getElementById('save-color-banner').addEventListener('click',(event)=>{
+    let colorInput = document.getElementById('profile-banner-input-color').value
+    $.ajax({
+        traditional: true,
+        url: '/editProfileBanner/' + uid,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify( {
+            type: "color",
+            color: colorInput
+        } ), 
+        success: function(response) {
+            if (response.success == true) {
+                if (isMyProfile == true) {
+                    document.getElementById("banner-continner").innerHTML = ` 
+                        <div id="banner-color" data-color="${colorInput}"> 
+                            <div class="banner-profile-class"></div>
+                        </div>
+                    `
+                }else{
+                    document.getElementById("banner-continner").innerHTML = ` 
+                        <div id="banner-color" data-color="${colorInput}"></div>
+                    `
+                }
+                document.querySelector('.banner-profile-class').addEventListener('click',()=>{
+                    document.getElementById('edit-banner-containner').show("flex")
+                })
+                document.getElementById('banner-color').style.backgroundColor =  colorInput
+                document.getElementById('preview-color').style.backgroundColor = colorInput
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+        }
+    })
 })
