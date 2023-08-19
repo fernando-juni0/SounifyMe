@@ -195,24 +195,46 @@ module.exports = {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
+        }).then((res)=>{
+            return res
+        }).catch(err=>{
+            console.log(err);
+            return
+            
         });
       
         const data = await response.json();
         
         if (data.tracks && data.tracks.items.length > 0) {
-            const track = data.tracks.items[0];
-            const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(track.external_urls.spotify)}`);
-            const data2 = await response2.json();
+            try{
+                const track = data.tracks.items[0];
+                const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(track.external_urls.spotify)}`).then((res)=>{
+                    return res
+                }).catch(err=>{
+                    console.log(err);
+                    return 
+                });
+                
+                const data2 = await response2.json();
+                const info = await ytdl.getInfo(data2.linksByPlatform.youtube.url).then((res)=>{
+                    return res
+                }).catch(err=>{
+                    console.log(err);
+                    return
+                });
+                
+                const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
+                const trackInfo = {
+                    thumbnail: track.album.images[0].url,
+                    musica: track.name,
+                    banda: track.artists[0].name,
+                    link: link,
+                };
+                return trackInfo;
+            }catch{
+                return "erro"
+            }
             
-            const info = await ytdl.getInfo(data2.linksByPlatform.youtube.url);
-            const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
-            const trackInfo = {
-                thumbnail: track.album.images[0].url,
-                musica: track.name,
-                banda: track.artists[0].name,
-                link: link,
-            };
-            return trackInfo;
         } else {
           console.log('Nenhuma música encontrada.');
         }

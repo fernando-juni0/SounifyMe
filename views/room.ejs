@@ -29,9 +29,28 @@
                         </div>
                         <div id="queue-content">
                             <div id="queue-row">
-                                <div id="queue-col">
-                                    a
-                                </div>
+                                <% room.queue.forEach(element => { %>
+                                    <div class="queue-col">
+                                        <div class="queue-col-count">
+                                            <span class="queue-col-count-span"><%= element.index %></span>
+                                        </div>
+                                        <div class="queue-col-music-stats">
+                                            <div class="queue-col-music-pic">
+                                                <img src="<%= element.thumbnail %>" class="queue-col-music-pic-img">
+                                            </div>
+                                            <div class="queue-col-music-texts">
+                                                <div class="queue-col-music-texts-music">
+                                                    <h1 class="queue-col-music-texts-music-h1"><%= element.musica %></h1>
+                                                </div>
+                                                <div class="queue-col-music-texts-banda">
+                                                    <p class="queue-col-music-texts-banda-p"><%= element.banda %></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="linha"></div>
+                                <% }) %>
+                                
                             </div>
                         </div>
                     </div>

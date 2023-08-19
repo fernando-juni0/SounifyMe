@@ -92,18 +92,14 @@ io.on('connection', async(socket) => {
     })
     socket.on('resVote',async(data)=>{
         if (data.numberVotes > data.numberRecuses) {
-            console.log(data);
             functions.percentualNumber(data.numberVotes,data.roomUserNumber,80).then((res)=>{
                 if (res == true) {
-                    console.log(true);
                     socket.to(data.roomID).emit('resultVote',data, true);
                 }else{
-                    console.log(false);
                     socket.to(data.roomID).emit('resultVote',data, false);
                 }
             })
         }else{
-            console.log(2);
             socket.to(data.roomID).emit('resultVote',data,false);
         }
         
@@ -118,6 +114,10 @@ io.on('connection', async(socket) => {
     socket.on('resTimeMusic',async(data)=>{
         //TODO(UPDATE)  adicionar o script de frequencia que esta no functions ,
         io.to(data.room).emit('TimeMusicGet',data)
+    })
+
+    socket.on("nextMusic",async(musicIndex,room)=>{
+        io.to(room).emit('resultCommandsMusic', musicIndex,room)
     })
 
     socket.on('getCommand', async(data)=>{
@@ -153,7 +153,12 @@ io.on('connection', async(socket) => {
                             } else {
                                 console.log('O link não é válido para o YouTube.');
                             }
-                            const info = await ytdl.getInfo(data.link);
+                            const info = await ytdl.getInfo(data.link).then((res)=>{
+                                return res
+                            }).catch(err=>{
+                                console.log(err);
+                                return
+                            });
                             const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
                             const thumbnailURL = info.videoDetails.thumbnails[0].url;
                             const tituloDoVideo = info.videoDetails.title;
@@ -176,7 +181,15 @@ io.on('connection', async(socket) => {
                             }
                             break;
                         case 'songName':
-                            return await functions.searchTrackLink(data.link)
+                            return await functions.searchTrackLink(data.link).then((res)=>{
+                                if (res == 'erro') {
+                                    return {erro:"Não foi possivel encontrar a musica"}
+                                }
+                                return res
+                            }).catch(err=>{
+                                console.log(err);
+                                return {erro:err}
+                            })
                             break;
                         case 'spotify':
                             const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(data.link)}`);
@@ -201,23 +214,50 @@ io.on('connection', async(socket) => {
                
 
                 let verifyLinkResult = await validLinkType(data)
-                io.to(data.room).emit('receiveCommand', {command:data.command,user:data.user, date:data.date, linkInfos:{
+                if (verifyLinkResult.erro) {
+                    switch (verifyLinkResult.erro) {
+                        case 'Não foi possivel encontrar a musica':
+                            io.to(data.room).emit('Reqerror', {erroType:'playMusic',errorText:verifyLinkResult.erro});
+                            break;
+                    
+                        default:
+                            break;
+                    
+                    }
+                    
+                    return
+                }
+
+                let roomData = await db.findOne({colecao:'Conections',doc:data.room})
+                
+                let modelAddMusic = {
                     link:verifyLinkResult.link,
                     thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
                     banda:verifyLinkResult.banda,
                     musica:verifyLinkResult.musica
-                }});
+                }
 
+                let roomQueue = roomData.queue
+                let roomQueueCount = roomQueue.length + 1
+                
+                if (roomQueue.length == 0) {
+                    io.to(data.room).emit('receiveCommand', {typeResult:'play',command:data.command,user:data.user, date:data.date, queueIndex:roomQueueCount,linkInfos:modelAddMusic});
+    
+                    await db.update('Conections',data.room,{
+                        musicaAtual:modelAddMusic
+                    })
+                }else{
+                    io.to(data.room).emit('receiveCommand', {typeResult:'queue',command:data.command,user:data.user, date:data.date,queueIndex:roomQueueCount, linkInfos:modelAddMusic});
+                }
+                let modelAddMusicQueue = modelAddMusic
+                modelAddMusicQueue.index = roomQueueCount
+                await roomQueue.push(modelAddMusicQueue)
                 await db.update('Conections',data.room,{
-                    musicaAtual:{
-                        link:verifyLinkResult.link,
-                        thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
-                        banda:verifyLinkResult.banda,
-                        musica:verifyLinkResult.musica
-                    }
+                    queue:roomQueue
                 })
                 
-                let roomData = await db.findOne({colecao:'Conections',doc:data.room})
+                
+                
                 let mensageObj = await roomData.mensages
                 await mensageObj.push({
                     userUID:data.user.uid,
