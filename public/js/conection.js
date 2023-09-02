@@ -87,13 +87,13 @@ document.querySelectorAll('.server-list-col').forEach((element,index)=>{
                             <div id="server-list-right-music-infos">
                                 <h1 id="room-right-tocando">Tocando</h1>
                                 <div id="room-right-music-pic">
-                                    <img id="room-right-music-pic-img" src="../public/img/exempleImg.jpg">
+                                    <img id="room-right-music-pic-img" src="${room.musicaAtual.thumbnail ? room.musicaAtual.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg'}">
                                 </div>
                                 <div id="room-right-music-name">
-                                    <h1 id="room-right-music-name-h1">Nome da Musica</h1>
+                                    <h1 id="room-right-music-name-h1">${room.musicaAtual.musica ? room.musicaAtual.musica : 'Nome Da Musica' }</h1>
                                 </div>
                                 <div id="room-right-music-banda">
-                                    <p id="room-right-music-banda-p">Nome da Banda</p>
+                                    <p id="room-right-music-banda-p">${room.musicaAtual.banda ? room.musicaAtual.banda : "Nome Da Banda"}</p>
                                 </div>
                             </div>
                             <div class="linha"></div>

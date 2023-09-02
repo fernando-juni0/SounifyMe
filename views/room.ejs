@@ -30,7 +30,7 @@
                         <div id="queue-content">
                             <div id="queue-row">
                                 <% room.queue.forEach(element => { %>
-                                    <div class="queue-col">
+                                    <div class="queue-col" data-index="<%= element.index %>">
                                         <div class="queue-col-count">
                                             <span class="queue-col-count-span"><%= element.index %></span>
                                         </div>
