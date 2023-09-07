@@ -30,7 +30,7 @@
                         <div id="queue-content">
                             <div id="queue-row">
                                 <% room.queue.forEach(element => { %>
-                                    <div class="queue-col">
+                                    <div class="queue-col" data-index="<%= element.index %>">
                                         <div class="queue-col-count">
                                             <span class="queue-col-count-span"><%= element.index %></span>
                                         </div>
@@ -75,12 +75,21 @@
                                                         </div>
                                                     </div>
                                                 </div> 
-                                            <% }else if(element.command){ %>
+                                            <% }else if(element.command && !element.type){ %>
                                                 <div class="main-chat-command-col">
                                                     <div class="main-chat-command-col-content">
                                                         <div class="main-chat-command-text">
                                                             <p class="main-chat-command-text-p"><%= element.mensageDate %></p>
                                                             <h1 class="main-chat-command-text-h1">O Usuário <b><%= element.userName %></b> adicionou a música <b><%= element.resCommand.musica %></b> a fila de reprodução!</h1>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <% }else if(element.type == 'playlistYT'){ %>
+                                                <div class="main-chat-command-col">
+                                                    <div class="main-chat-command-col-content">
+                                                        <div class="main-chat-command-text">
+                                                            <p class="main-chat-command-text-p"><%= element.mensageDate %></p>
+                                                            <h1 class="main-chat-command-text-h1">O Usuário <b><%= element.userName %></b> adicionou uma playlist do youtube a fila de reprodução!</h1>
                                                         </div>
                                                     </div>
                                                 </div>

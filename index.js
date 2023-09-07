@@ -13,9 +13,11 @@ const functions = require('./functions');
 const authentication = require('./Firebase/authentication')
 const { getAuth,fetchSignInMethodsForEmail } = require('firebase/auth')
 const cloudinary = require('cloudinary')
-const ytdl = require('ytdl-core');
+var ytdl = require('ytdl-core');
 const cors = require('cors');
 const axios = require('axios');
+const SpotifyWebApi = require('spotify-web-api-node');
+
 
 // let servers = require('./config/originals-servers')
 const app = express();
@@ -80,15 +82,13 @@ cloudinary.config({
 
 
 
+
 //TODO----------------SOCKET------------------
-
-
-// para pegar as infos do video e a url
-
-
 io.on('connection', async(socket) => {
+
     socket.on('initVote',async(data)=>{
         io.to(data.roomID).emit('reqVote', data)
+        
     })
     socket.on('resVote',async(data)=>{
         if (data.numberVotes > data.numberRecuses) {
@@ -116,13 +116,20 @@ io.on('connection', async(socket) => {
         io.to(data.room).emit('TimeMusicGet',data)
     })
 
-    socket.on("nextMusic",async(musicIndex,room)=>{
+    socket.on("indexMusic",async(musicIndex,room)=>{
         io.to(room).emit('resultCommandsMusic', musicIndex,room)
+        await db.update('Conections',room,{
+            positionQueue:musicIndex
+        })
     })
 
     socket.on('getCommand', async(data)=>{
         switch (data.command) {
             case '/play':
+                var roomData = await db.findOne({colecao:'Conections',doc:data.room})
+                var roomQueue = roomData.queue
+                var roomQueueCount = roomQueue.length + 1
+
                 function removerTextosIndesejados(texto) {
                     const padroes = [
                       /\(Vídeo Oficial\)/g,
@@ -140,45 +147,76 @@ io.on('connection', async(socket) => {
                     return texto;
                 }
                 async function validLinkType(data) {
-                    switch (data.type) {
+                     switch (data.type) {
                         case 'youtube':
-                            if (ytdl.validateURL(data.link)) {
-                                if (ytdl.getURLVideoID(data.link)) {
-                                    console.log('O link é um vídeo individual.');
-                                } else if (ytdl.getURLPlaylistID(data.link)) {
-                                    console.log('O link é uma playlist.');
-                                } else {
-                                    console.log('O link não é um vídeo nem uma playlist válida.');
-                                }
-                            } else {
-                                console.log('O link não é válido para o YouTube.');
-                            }
-                            const info = await ytdl.getInfo(data.link).then((res)=>{
-                                return res
-                            }).catch(err=>{
-                                console.log(err);
-                                return
-                            });
-                            const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
-                            const thumbnailURL = info.videoDetails.thumbnails[0].url;
-                            const tituloDoVideo = info.videoDetails.title;
-                            const match = tituloDoVideo.match(/^(.*?)\s*-\s*(.*)$/);
-                            var banda = null
-                            var musica = null
+                            if (data.link.includes('/playlist')) {
+                                let playlistDataYt = await functions.getPlaylistYoutube(data.link);
 
-                            if (match) {
-                                banda = match[1].trim()
-                                musica = await removerTextosIndesejados(match[2].trim())
-                            } else {
-                                musica =await removerTextosIndesejados(tituloDoVideo);
-                                banda = null
-                            }
-                            return {
-                                link:link,
-                                thumbnail:thumbnailURL,
-                                banda:banda,
-                                musica:musica
-                            }
+                                const promises = [];
+                                
+                                for (const [index, element] of playlistDataYt.entries()) {
+                                    let matchLink = element.match(/[?&]v=([^&]+)/);
+                                    let playlistID =  matchLink ? matchLink[1] : null;
+                                    if (playlistID) {
+                                        const promise = ytdl.getInfo(playlistID).then(async(infoPlaylistLink) => {
+                                        const link = ytdl.chooseFormat(infoPlaylistLink.formats, { filter: 'audioonly' }).url;
+                                        const thumbnailURL = infoPlaylistLink.videoDetails.thumbnails[0].url;
+                                        const tituloDoVideo = infoPlaylistLink.videoDetails.title;
+                                        const match = tituloDoVideo.match(/^(.*?)\s*-\s*(.*)$/);
+                                        var banda = null;
+                                        var musica = null;
+
+                                        if (match) {
+                                            banda = match[1].trim();
+                                            musica = await removerTextosIndesejados(match[2].trim());
+                                        } else {
+                                            musica = await removerTextosIndesejados(tituloDoVideo);
+                                            banda = null;
+                                        }
+                                        return {
+                                            thumbnail: thumbnailURL,
+                                            musica: musica,
+                                            banda: banda,
+                                            link: link,
+                                            index: roomQueueCount + index
+                                        }
+
+                                            // Adicione os dados ao arrayPlaylist ou faça o que for necessário aqui.
+                                        })
+                                        .catch((err) => {
+                                            console.error(err);
+                                        });
+
+                                        promises.push(promise);
+                                    } else {
+                                        
+                                        console.error('ID de playlist inválido:', element);
+                                        return {erro:"ID de playlist inválido"}
+                                    }
+                                }
+
+                                await Promise.all(promises); // Aguarde todas as chamadas assíncronas.
+                                return {
+                                    type:'youtubePlaylist',
+                                    playlistDataRes : promises
+                                }
+                            }else{
+                                let linkData = await functions.getLinkYtData(data.link)
+                                console.log(linkData);
+                                return linkData
+                            } 
+                            // if (ytdl.validateURL(data.link)) {
+                            //     if (ytdl.getURLVideoID(data.link)) {
+                            //         console.log('O link é um vídeo individual.');
+                            //     } else if (ytdl.getURLPlaylistID(data.link)) {
+                            //         console.log('O link é uma playlist.');
+                            //     } else {
+                            //         console.log('O link não é um vídeo nem uma playlist válida.');
+                            //     }
+                            // } else {
+                            //     console.log('O link não é válido para o YouTube.');
+                            // }
+                            
                             break;
                         case 'songName':
                             return await functions.searchTrackLink(data.link).then((res)=>{
@@ -192,18 +230,27 @@ io.on('connection', async(socket) => {
                             })
                             break;
                         case 'spotify':
-                            const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(data.link)}`);
-                            const data2 = await response2.json();
-                            
-                            const infoRES = await ytdl.getInfo(data2.linksByPlatform.youtube.url);
-                            const linkRES = ytdl.chooseFormat(infoRES.formats, { filter: 'audioonly' }).url
-                            const resInfos = data2.entitiesByUniqueId[data2.entityUniqueId]
-                            return {
-                                thumbnail: resInfos.thumbnailUrl,
-                                musica: resInfos.title,
-                                banda: resInfos.artistName,
-                                link: linkRES,
-                            };
+                            if (data.link.includes('/playlist/')) {
+                                return alert('Atualmente não aceitamos playlists do spotify')
+                                // let playlistData = await functions.getPlaylistMusic(data.link,roomQueueCount,io,data.room)
+                                // return {
+                                //     type:'spotifyPlaylist',
+                                //     playlistData:playlistData
+                                // }
+                            }else{
+                                const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(data.link)}`);
+                                const data2 = await response2.json();
+                                
+                                const infoRES = await ytdl.getInfo(data2.linksByPlatform.youtube.url);
+                                const linkRES = ytdl.chooseFormat(infoRES.formats, { filter: 'audioonly' }).url
+                                const resInfos = data2.entitiesByUniqueId[data2.entityUniqueId]
+                                return {
+                                    thumbnail: resInfos.thumbnailUrl,
+                                    musica: resInfos.title,
+                                    banda: resInfos.artistName,
+                                    link: linkRES,
+                                };
+                            }
                             break
                         default:
                             break;
@@ -214,6 +261,7 @@ io.on('connection', async(socket) => {
                
 
                 let verifyLinkResult = await validLinkType(data)
+
                 if (verifyLinkResult.erro) {
                     switch (verifyLinkResult.erro) {
                         case 'Não foi possivel encontrar a musica':
@@ -228,8 +276,50 @@ io.on('connection', async(socket) => {
                     return
                 }
 
-                let roomData = await db.findOne({colecao:'Conections',doc:data.room})
-                
+                if (verifyLinkResult.type == 'youtubePlaylist') {
+                    var roomDataPl = await db.findOne({colecao:'Conections',doc:data.room})
+                    let roomModifyAddPlaylist = roomDataPl.queue
+                    var roomQueueCount = roomDataPl.queue.length + 1
+                    await verifyLinkResult.playlistDataRes.forEach(async(element,index)=>{
+                        console.log(element);
+                        let elementResolve = await Promise.resolve(element)
+                        if (roomModifyAddPlaylist.length == 0 && index == 0) {
+                            io.to(data.room).emit('getMuiscPlaylist', {user:data.user,typeResult:'play', date:data.date,queueIndex:roomQueueCount, linkInfos:elementResolve});
+                            db.update('Conections',data.room,{
+                                musicaAtual:{
+                                    link:elementResolve.link,
+                                    thumbnail: elementResolve.thumbnail ? elementResolve.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
+                                    banda:elementResolve.banda,
+                                    musica:elementResolve.musica
+                                }
+                            })
+                        }else{
+                            io.to(data.room).emit('getMuiscPlaylist', {user:data.user,typeResult:'queue', date:data.date,queueIndex:roomQueueCount, linkInfos:elementResolve});
+                        }
+                        await roomModifyAddPlaylist.push(elementResolve)
+                    })
+                    let mensageObj = await roomDataPl.mensages
+                    await mensageObj.push({
+                        userUID:data.user.uid,
+                        mensageDate: data.date,
+                        userName: data.user.displayName,
+                        userPic: data.user.profilePic,
+                        command:data.command,
+                        type:'playlistYT',
+                    })
+                    db.update('Conections',data.room,{
+                        queue:roomModifyAddPlaylist,
+                        mensages:mensageObj
+                    })
+
+                    return
+                }
+
+                if (verifyLinkResult.type == 'spotifyPlaylist') {
+                    console.log(verifyLinkResult);
+                    // io.to(data.room).emit('test',verifyLinkResult.playlistData );
+                    return
+                }
                 let modelAddMusic = {
                     link:verifyLinkResult.link,
                     thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
@@ -237,8 +327,7 @@ io.on('connection', async(socket) => {
                     musica:verifyLinkResult.musica
                 }
 
-                let roomQueue = roomData.queue
-                let roomQueueCount = roomQueue.length + 1
+                
                 
                 if (roomQueue.length == 0) {
                     io.to(data.room).emit('receiveCommand', {typeResult:'play',command:data.command,user:data.user, date:data.date, queueIndex:roomQueueCount,linkInfos:modelAddMusic});
@@ -285,15 +374,43 @@ io.on('connection', async(socket) => {
                         })
                         break;
                     case 'parar a musica atual':
+                        
+                        const roomDataClear = await db.findOne({colecao:'Conections',doc:data.roomID})
+                        let roomQueueClear = roomDataClear.queue
+                        await roomQueueClear.forEach((element,index)=>{
+                            if (element.link == data.other.link) {
+                                roomQueueClear.splice(index,1)
+                            }
+                            roomQueueClear.index = roomQueueClear.index - 1
+                        })
+                        await db.update('Conections',data.roomID,{
+                            musicaAtual:{},
+                            queue:roomQueueClear
+                        })
+                        io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
+                        break;
+                    case 'apagar a fila de reprodução':
                         io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,});
                         await db.update('Conections',data.roomID,{
-                            musicaAtual:{}
+                            musicaAtual:{},
+                            queue:[]
                         })
-                        break;
+                        break
                     
                 }
-            default:
-                break;
+                break
+            case '/indexChange':
+                const roomDataChange = await db.findOne({colecao:'Conections',doc:data.roomID})
+                let roomDataQueue = roomDataChange.queue
+                if (data.other > roomDataQueue.length || data.other <= 0) {
+                    return
+                }
+                io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
+                await db.update('Conections',data.roomID,{
+                    positionQueue:data.other,
+                    musicaAtual:roomDataQueue[data.other - 1]
+                })
+                break
         }
     })
 
@@ -545,6 +662,7 @@ app.get('/auth/Google/login',(req,res)=>{
 app.get('/playlist/:playlistUID',functions.isAuthenticated,(req,res)=>{
 
 })
+
 
 
 

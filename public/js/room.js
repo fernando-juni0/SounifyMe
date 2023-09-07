@@ -7,15 +7,44 @@ window.addEventListener('beforeunload', function (event) {
 var url = window.location.pathname
 var partes = url.split("/");
 var roomID = partes.pop();
-var roomUsers = room.pessoas
-roomUsers.push(uid)
+var roomUsers = removeDuplicates(room.pessoas)
 var roomUserNumber = roomUsers.length 
 
+var audioTag = document.getElementById('audioTag')
+
+
+var currentMusicPic = document.getElementById('current-music-pic-img')
+var currentMusicTitle = document.getElementById('current-music-texts-name-h1')
+var currentMusicBanda = document.getElementById('current-music-texts-banda-p')
 
 var openVote = false
 
+
+function removeDuplicates(arr) {
+  const uniqueValues = [];
+  
+  for (const value of arr) {
+    if (!uniqueValues.includes(value)) {
+      uniqueValues.push(value);
+    }
+  }
+  
+  return uniqueValues;
+}
+
+
+
+
 window.addEventListener('load',async()=>{
     document.getElementById('containner').hide()
+    if (roomUserNumber >= 1) {
+        roomUsers.forEach((element,index) => {
+            if (element == uid) {
+                roomUsers.splice(index,1)
+                roomUserNumber = roomUsers.length 
+            }
+        });
+    }
     await socket.emit('joinRoom', {roomID:roomID, uid:uid});
 })
 
@@ -33,7 +62,7 @@ document.getElementById('click-button-continuar').addEventListener('click',async
     if (roomUserNumber >= 2) {
         await socket.emit('reqTimeMusic',uid,roomID)
     }
-    if (room.musicaAtual.link && roomUserNumber == 1) {
+    if (room.musicaAtual.link && roomUserNumber == 0) {
         addCurrentMusic({
             linkInfos:{
                 banda: room.musicaAtual.banda,
@@ -100,7 +129,15 @@ function enviarMensagem() {
                     initVote("/clear",'apagar o chat')
                     break;
                 case 'music':
-                    initVote("/clear",'parar a musica atual')
+                    initVote("/clear",'parar a musica atual',{
+                        banda: currentMusicBanda.textContent,
+                        musica: currentMusicTitle.textContent,
+                        thumbnail: currentMusicPic.src,
+                        link: audioTag.src
+                    })
+                    break
+                case 'queue':
+                    initVote('/clear','apagar a fila de reprodução')
                     break
             }
             return
@@ -109,12 +146,7 @@ function enviarMensagem() {
     socket.emit('sendMessage',{room:roomID, mensage:inputContain, user:{uid:uid,displayName:displayName,profilePic:profilePic},date:dataHoraFormatada});
 }
 
-var audioTag = document.getElementById('audioTag')
 
-
-var currentMusicPic = document.getElementById('current-music-pic-img')
-var currentMusicTitle = document.getElementById('current-music-texts-name-h1')
-var currentMusicBanda = document.getElementById('current-music-texts-banda-p')
 
 function addCurrentMusic(data) {
     currentMusicTitle.innerText = data.linkInfos.musica
@@ -146,15 +178,15 @@ volumeRange.addEventListener('input', () => {
 
 
 
-async function initVote(command,action) {
+async function initVote(command,action, other = null) {
     if (openVote == true) {
         return
     }
     if (roomUserNumber <= 1 ) {
-        socket.emit('getCommand',{action:action,command:command,roomID:roomID})
+        socket.emit('getCommand',{action:action,command:command,roomID:roomID,other:other})
         return
     }
-    await socket.emit('initVote', {command: command,numberRecuses:0,numberVotes:1,roomID:roomID,displayName:displayName,roomUserNumber:roomUserNumber, uid:uid,action:action});
+    await socket.emit('initVote', {command: command,other:other,numberRecuses:0,numberVotes:1,roomID:roomID,displayName:displayName,roomUserNumber:roomUserNumber, uid:uid,action:action});
 
     document.getElementById('main-chat-row').innerHTML += ` 
         <div id="main-chat-vote-col">
@@ -206,7 +238,7 @@ socket.on('reqVote',(data)=>{
                 document.getElementById('main-chat-vote-votes-number').innerText = parseInt(document.getElementById('main-chat-vote-votes-number').textContent) + 1
                 document.getElementById('vote-acept').setAttribute('disabled','disabled')
                 document.getElementById('vote-recuse').setAttribute('disabled','disabled')
-                await socket.emit('resVote', {command:data.command, action:data.action,numberRecuses:data.numberRecuses,numberVotes:(data.numberVotes + 1),roomID:roomID,roomUserNumber:roomUserNumber, uid:uid});
+                await socket.emit('resVote', {other:data.other,command:data.command, action:data.action,numberRecuses:data.numberRecuses,numberVotes:(data.numberVotes + 1),roomID:roomID,roomUserNumber:roomUserNumber, uid:uid});
             })
             document.getElementById('vote-recuse').addEventListener('click',async()=>{
                 if (document.getElementById('vote-recuse').getAttribute('disabled') == 'disabled') {
@@ -214,7 +246,7 @@ socket.on('reqVote',(data)=>{
                 }
                 document.getElementById('vote-acept').setAttribute('disabled','disabled')
                 document.getElementById('vote-recuse').setAttribute('disabled','disabled')
-                await socket.emit('resVote', {command:data.command, action:data.action,numberRecuses:(data.numberRecuses + 1),numberVotes:data.numberVotes,roomID:roomID,roomUserNumber:roomUserNumber, uid:uid});
+                await socket.emit('resVote', {other:data.other,command:data.command, action:data.action,numberRecuses:(data.numberRecuses + 1),numberVotes:data.numberVotes,roomID:roomID,roomUserNumber:roomUserNumber, uid:uid});
             })
         document.getElementById('main-chat-row').scrollTop = document.getElementById('main-chat-row').scrollHeight; 
     }
@@ -223,6 +255,7 @@ socket.on('reqVote',(data)=>{
 
 socket.on('resultVote',(data,result)=>{
     if (result == true) {
+        openVote = false
         socket.emit('getCommand',data)
     }
 })
@@ -269,10 +302,28 @@ let roomQueue = room.queue
 let indexMusic = room.positionQueue
 let musicOptions = room.musicOptions
 
-audioTag.addEventListener('ended',()=>{
-    indexMusic = indexMusic + 1
-    socket.emit('nextMusic',indexMusic,roomID);
+
+
+audioTag.addEventListener('ended',async()=>{
+    await socket.emit('indexMusic',indexMusic + 1,roomID);
 })
+
+document.getElementById('options-button-next-music').addEventListener('click',()=>{
+    initVote('/indexChange','pular a musica atual',indexMusic + 1)
+})
+document.getElementById('options-button-back-music').addEventListener('click',()=>{
+    initVote('/indexChange','voltar para a musica anterior',indexMusic - 1)
+})
+
+
+document.querySelectorAll('.queue-col').forEach((element,index)=>{
+    element.addEventListener('click',(res)=>{
+        let index = parseInt(element.getAttribute('data-index'))
+        initVote('/indexChange',`Iniciar a Musica ${element.querySelector('.queue-col-music-texts-music-h1').textContent} da fila de Reprodução`,index)
+       
+    })
+})
+
 
 
 socket.on('resultCommandsMusic',async(musicIndex,room)=>{
@@ -328,6 +379,57 @@ socket.on('TimeMusicPost',(user,room)=>{
     }
 })
 
+socket.on('getMuiscPlaylist',(data)=>{
+    if (data.typeResult == 'play') {
+        addCurrentMusic(data)
+        successNotify('Playlist adicionada a fila e iniciada')
+        document.getElementById('main-chat-row').innerHTML += `
+            <div class="main-chat-command-col">
+                <div class="main-chat-command-col-content">
+                    <div class="main-chat-command-text">
+                        <p class="main-chat-command-text-p">${data.date}</p>
+                        <h1 class="main-chat-command-text-h1">O Usuário <b>${data.user.displayName}</b> adicionou uma playlist do youtube a fila de reprodução!</h1>
+                    </div>
+                </div>
+            </div>
+        `
+        document.getElementById('main-chat-row').scrollTop = document.getElementById('main-chat-row').scrollHeight; 
+    }else{
+        let dataMusic = data.linkInfos
+        roomQueue.push(dataMusic)
+        successNotify('Playlist adicionada a fila')
+    }
+    roomQueue.push(data.linkInfos.index)
+    document.getElementById('queue-row').innerHTML += `
+        <div class="queue-col" data-index='${data.linkInfos.index}'>
+            <div class="queue-col-count">
+                <span class="queue-col-count-span">${data.linkInfos.index}</span>
+            </div>
+            <div class="queue-col-music-stats">
+                <div class="queue-col-music-pic">
+                    <img src="${data.linkInfos.thumbnail}" class="queue-col-music-pic-img">
+                </div>
+                <div class="queue-col-music-texts">
+                    <div class="queue-col-music-texts-music">
+                        <h1 class="queue-col-music-texts-music-h1">${data.linkInfos.musica}</h1>
+                    </div>
+                    <div class="queue-col-music-texts-banda">
+                        <p class="queue-col-music-texts-banda-p">${data.linkInfos.banda}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="linha"></div>
+    `
+    document.querySelectorAll('.queue-col').forEach((element,index)=>{
+        element.addEventListener('click',(res)=>{
+            let index = parseInt(element.getAttribute('data-index'))
+            initVote('/indexChange',`Iniciar a Musica ${element.querySelector('.queue-col-music-texts-music-h1').textContent} da fila de Reprodução`,index)
+           
+        })
+    })
+})
+
 
 
 
@@ -341,9 +443,10 @@ socket.on('receiveCommand',(data)=>{
                     let dataMusic = data.linkInfos
                     dataMusic.index = data.queueIndex
                     roomQueue.push(dataMusic)
+                    successNotify('Musica adicionada a fila')
                 }
                 document.getElementById('queue-row').innerHTML += `
-                    <div class="queue-col">
+                    <div class="queue-col" data-index='${data.queueIndex}'>
                         <div class="queue-col-count">
                             <span class="queue-col-count-span">${data.queueIndex}</span>
                         </div>
@@ -391,11 +494,59 @@ socket.on('receiveCommand',(data)=>{
                     if (document.getElementById('main-chat-vote-col')) {
                         document.getElementById('main-chat-row').removeChild(document.getElementById('main-chat-vote-col'))
                     }
+                    let roomQueueClear = roomQueue
+                    roomQueueClear.forEach((element,index)=>{
+                        if (element.link == data.other.link) {
+                            roomQueueClear.splice(index,1)
+                            return
+                        }
+                        document.getElementById('queue-row').innerHTML = `
+                            <div class="queue-col" data-index='${element.index}'>
+                                <div class="queue-col-count">
+                                    <span class="queue-col-count-span">${element.index}</span>
+                                </div>
+                                <div class="queue-col-music-stats">
+                                    <div class="queue-col-music-pic">
+                                        <img src="${element.thumbnail}" class="queue-col-music-pic-img">
+                                    </div>
+                                    <div class="queue-col-music-texts">
+                                        <div class="queue-col-music-texts-music">
+                                            <h1 class="queue-col-music-texts-music-h1">${element.musica}</h1>
+                                        </div>
+                                        <div class="queue-col-music-texts-banda">
+                                            <p class="queue-col-music-texts-banda-p">${element.banda}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="linha"></div>
+                        `
+                        roomQueueClear.index = roomQueueClear.index - 1
+                    })
+                    
                     clearMusic()
                     successNotify('Musica Atual Apagada')
                     break
-                
+                case 'apagar a fila de reprodução':
+                    roomQueue = []
+                    indexMusic = 1
+                    document.getElementById('queue-row').innerHTML = ''
+                    clearMusic()
+                    successNotify('File de reprodução Apagada')
+                    break
             }
+            break
+        case '/indexChange':
+            console.log(1);
+            if (data.other > roomQueue.length || data.other <= 0) {
+                return
+            }
+            indexMusic = data.other
+            console.log(indexMusic);
+            let dataMusic = {linkInfos:roomQueue[data.other - 1]}
+            console.log(data.other,dataMusic);
+            addCurrentMusic(dataMusic)
+            break
     }
 })
 
@@ -437,3 +588,13 @@ socket.on('leave_user',(uid)=>{
     roomUsers.splice(indexToRemove, 1);
     roomUserNumber = roomUserNumber - 1
 })
+
+
+
+
+
+
+
+
+
+

@@ -3,6 +3,8 @@ const { getAuth, GoogleAuthProvider, updateCurrentUser, browserSessionPersistenc
 const functions = require('../functions')
 const db = require('./models')
 
+const SpotifyWebApi = require('spotify-web-api-node');
+
 const firebaseDATA = require('../config/firebase-config.json')
 
 
@@ -124,9 +126,9 @@ module.exports = {
           },
           body: 'grant_type=client_credentials',
         });
-      
         const data = await response.json();
-        return data.access_token;
+        return data.access_token
+
       }
 }
 
