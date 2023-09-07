@@ -320,7 +320,6 @@ document.querySelectorAll('.queue-col').forEach((element,index)=>{
     element.addEventListener('click',(res)=>{
         let index = parseInt(element.getAttribute('data-index'))
         initVote('/indexChange',`Iniciar a Musica ${element.querySelector('.queue-col-music-texts-music-h1').textContent} da fila de Reprodução`,index)
-       
     })
 })
 
@@ -428,9 +427,8 @@ socket.on('getMuiscPlaylist',(data)=>{
            
         })
     })
+
 })
-
-
 
 
 socket.on('receiveCommand',(data)=>{
@@ -542,7 +540,6 @@ socket.on('receiveCommand',(data)=>{
                 return
             }
             indexMusic = data.other
-            console.log(indexMusic);
             let dataMusic = {linkInfos:roomQueue[data.other - 1]}
             console.log(data.other,dataMusic);
             addCurrentMusic(dataMusic)
@@ -588,13 +585,3 @@ socket.on('leave_user',(uid)=>{
     roomUsers.splice(indexToRemove, 1);
     roomUserNumber = roomUserNumber - 1
 })
-
-
-
-
-
-
-
-
-
-

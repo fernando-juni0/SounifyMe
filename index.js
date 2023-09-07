@@ -15,9 +15,6 @@ const { getAuth,fetchSignInMethodsForEmail } = require('firebase/auth')
 const cloudinary = require('cloudinary')
 var ytdl = require('ytdl-core');
 const cors = require('cors');
-const axios = require('axios');
-const SpotifyWebApi = require('spotify-web-api-node');
-
 
 // let servers = require('./config/originals-servers')
 const app = express();
@@ -151,7 +148,7 @@ io.on('connection', async(socket) => {
                         case 'youtube':
                             if (data.link.includes('/playlist')) {
                                 let playlistDataYt = await functions.getPlaylistYoutube(data.link);
-
+                                console.log(playlistDataYt);
                                 const promises = [];
                                 
                                 for (const [index, element] of playlistDataYt.entries()) {
@@ -261,7 +258,6 @@ io.on('connection', async(socket) => {
                
 
                 let verifyLinkResult = await validLinkType(data)
-
                 if (verifyLinkResult.erro) {
                     switch (verifyLinkResult.erro) {
                         case 'Não foi possivel encontrar a musica':

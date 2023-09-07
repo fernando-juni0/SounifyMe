@@ -319,18 +319,12 @@ module.exports = {
     getLinkYtData:async (linkVideo)=>{
         const matchLink = await linkVideo.match(/[?&]v=([^&]+)/);
         let playlistID = await matchLink ? matchLink[1] : null;
-        const info = await ytdl.getInfo(playlistID).then((res)=>{
-            return res
-        }).catch((err)=>{
-            console.log(err);
-        })
+        const info = await ytdl.getInfo(playlistID)
         if (!info && !info.formats) {
             return {error: 'Não foi possivel obter as informações do video'}
         }
         const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
         const thumbnailURL = info.videoDetails.thumbnails[0].url;
-        const tituloDoVideo = info.videoDetails.title;
-        const match = tituloDoVideo.match(/^(.*?)\s*-\s*(.*)$/);
         var banda = null
         var musica = null
 
