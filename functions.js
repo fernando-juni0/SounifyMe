@@ -1,7 +1,9 @@
 const admin = require('firebase-admin');
 const models = require('./Firebase/models');
 const ytdl = require('ytdl-core');
-
+const axios = require('axios');
+const authentication = require('./Firebase/authentication');
+const config = require('./config/index-config')
 module.exports = {
     isAuthenticated: async (req, res, next)=> {
         const idToken = req.session.accesstoken;
@@ -152,7 +154,7 @@ module.exports = {
     },
     frequenceData: async (dadosRecebidos)=>{
         if (dadosRecebidos.length === 0) {
-            console.log('Ainda não há dados recebidos.');
+            console.error('Ainda não há dados recebidos.');
             return null;
         }
     
@@ -188,33 +190,174 @@ module.exports = {
             return false
         } 
     },
+    getPlaylistMusic: async (link,queueIndex,io,roomID)=>{
+        const accessToken = (await require('./Firebase/authentication').authenticateSpotify());
+        const match = link.match(/playlist\/([a-zA-Z0-9]+)$/i);
+        let playlistId = await match && match[1] ? match[1] : null
+
+        if (!playlistId) {
+            console.error('ID da playlist não encontrado.');
+            return;
+        }
+        const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }).then((res)=>{
+            return res.json()
+        }).catch(err=>{
+            console.error(err);
+            return
+            
+        });
+        const tracks = response.items;
+
+        let playlistMusicData = []
+
+        await tracks.forEach(async(track,index) => {
+            
+            const API_KEY = 'AIzaSyBH040ebD313-xHBvtDfLF1XOWZBF_HT1o';
+
+            const searchUrl = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&q=${encodeURIComponent(track.track.name)}&type=video`;
+
+            let linkMusic = await axios.get(searchUrl).then(async response => {
+                const videoId = response.data.items[0].id.videoId;
+                const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                // Example of filtering the formats to audio only.
+                const info = await ytdl.getInfo(videoUrl).then((res)=>{
+                    return res
+                }).catch(err=>{
+                    console.error(err);
+                    return
+                });
+                
+                const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
+                return link
+            }).catch(error => {
+                console.error('Erro ao buscar vídeos:', error);
+            });
+            playlistMusicData.push({
+                musica: track.track.name,
+                banda: track.track.artists[0].name,
+                thumbnail: track.track.album.images[0].url,
+                link: linkMusic,
+                index: queueIndex + index,
+            })
+        });
+        return playlistMusicData
+    },
     searchTrackLink:async (songName)=> {
-        const accessToken = await require('./Firebase/authentication').authenticateSpotify();
+        const accessToken = (await require('./Firebase/authentication').authenticateSpotify());
       
         const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(songName)}&type=track`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
+        }).then((res)=>{
+            return res
+        }).catch(err=>{
+            console.error(err);
+            return
+            
         });
       
         const data = await response.json();
         
         if (data.tracks && data.tracks.items.length > 0) {
-            const track = data.tracks.items[0];
-            const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(track.external_urls.spotify)}`);
-            const data2 = await response2.json();
+            try{
+                const track = data.tracks.items[0];
+                const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(track.external_urls.spotify)}`).then((res)=>{
+                    return res
+                }).catch(err=>{
+                    console.error(err);
+                    return 
+                });
+                
+                const data2 = await response2.json();
+                const info = await ytdl.getInfo(data2.linksByPlatform.youtube.url).then((res)=>{
+                    return res
+                }).catch(err=>{
+                    console.error(err);
+                    return
+                });
+                
+                const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
+                const trackInfo = {
+                    thumbnail: track.album.images[0].url,
+                    musica: track.name,
+                    banda: track.artists[0].name,
+                    link: link,
+                };
+                return trackInfo;
+            }catch{
+                return "erro"
+            }
             
-            const info = await ytdl.getInfo(data2.linksByPlatform.youtube.url);
-            const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
-            const trackInfo = {
-                thumbnail: track.album.images[0].url,
-                musica: track.name,
-                banda: track.artists[0].name,
-                link: link,
-            };
-            return trackInfo;
         } else {
-          console.log('Nenhuma música encontrada.');
+          console.error('Nenhuma música encontrada.');
+        }
+    },
+    getPlaylistYoutube:async(playlistUrl)=>{
+
+        let videoLinks = [];
+        const match = playlistUrl.match(/[?&]list=([^&]+)/);
+        let playlistID = match ? match[1] : null;
+        // URL da API do YouTube Data com o token de próxima página
+        const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistID}&key=${config.googleYoutubeToken}`;
+
+        // Faça uma solicitação GET para a API do YouTube Data
+        const response = await axios.get(apiUrl);
+
+        // Extraia os links de cada vídeo na playlist
+        videoLinks = videoLinks.concat(response.data.items.map(item => {
+            const videoId = item.contentDetails.videoId;
+            return `https://www.youtube.com/watch?v=${videoId}`;
+        }));
+        return videoLinks
+    },
+    getLinkYtData:async (linkVideo)=>{
+        function removerTextosIndesejados(texto) {
+            const padroes = [
+              /\(Vídeo Oficial\)/g,
+              /\(Official Lyric Video\)/g,
+              /\(Legendado\)/g,
+              /\(Official Music Video\)/g,
+              /\(tradução\)/g,
+              /\(legendado\)/g
+            ];
+          
+            padroes.forEach(p => {
+              texto = texto.replace(p, '');
+            });
+          
+            return texto;
+        }
+        const matchLink = await linkVideo.match(/[?&]v=([^&]+)/);
+        let playlistID = await matchLink ? matchLink[1] : null;
+        const info = await ytdl.getInfo(playlistID)
+        if (!info && !info.formats) {
+            return {error: 'Não foi possivel obter as informações do video'}
+        }
+        const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
+        const thumbnailURL = info.videoDetails.thumbnails[0].url;
+        const tituloDoVideo = info.videoDetails.title;
+        const match = info.videoDetails.title.match(/^(.*?)\s*-\s*(.*)$/);
+        var banda = null
+        var musica = null
+
+    
+        if (match) {
+            banda = match[1].trim()
+            musica = await removerTextosIndesejados(match[2].trim())
+        } else {
+            musica =await removerTextosIndesejados(tituloDoVideo);
+            banda = info.videoDetails.author.name
+        }
+        return {
+            link:link,
+            thumbnail:thumbnailURL,
+            banda:banda,
+            musica:musica
         }
     }
     

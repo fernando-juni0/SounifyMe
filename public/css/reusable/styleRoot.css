@@ -58,7 +58,6 @@ body{
     width: calc(100% - 15em);
     float: right;
     padding: 1em;
-    display: none;
 }
 #body-containner{
     width: 100%;
@@ -92,6 +91,7 @@ a{
 #containner{
     width: 100vw;
     height: 100%;
+    display: none;
 }
 
 

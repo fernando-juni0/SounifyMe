@@ -10,6 +10,7 @@
     <div id="body-containner">
         <%- include('./reusable/googlePopup.ejs') %>
         <%- include('./reusable/reload.ejs') %>
+       <div id="containner">
         <main id="main-containner">
             <div class="containner-size" id="login-img-containner">
                 <img src="../public/img/zyro-image.png" alt="">
@@ -112,6 +113,7 @@
                 </div>
             </section>
         </main>
+       </div>
     </div>
     <div><form action="/auth" id="formignore" method="post"><input type="text" id="userAutenticate" name="user" hidden><input type="text" name="redirect" id="userRedirect" hidden></form></div>
     <%- include('./reusable/script.ejs') %>
