@@ -12,6 +12,10 @@
     height: 100%;
     background-color: #AB94E9;
 }
+#main-containner{
+    width: 100% !important;
+    height: 100% !important;
+}
 main{
     width: 100vw;
     height: 100vh;

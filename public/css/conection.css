@@ -290,6 +290,7 @@ html,body,#main-containner,#containner,#body-containner{
                         margin-top: 1em;
                         #room-right-music-pic-img{
                             width: 5em;
+                            height: 5em;
                             border-radius: 10px;
                         }
                     }

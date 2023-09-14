@@ -585,11 +585,170 @@
         align-items: center;
     }
 }
+#bottom-containner{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    #bottom-content{
+        width: 12em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .buttonsButtomInterec{
+            cursor: pointer;
+            border: none;
+            outline: none;
+            background-color: var(--tertiary-lite-color);
+            width: 5.5em;
+            height:5.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20em;
+            transition: 0.5s;
+            &:last-child{
+                background-color: #C72828;
 
+            }
+            &:hover{
+                opacity: 0.8;
+                transition: 0.5s;
+            }
+            .IconsRoomIntec{
+                width: 3em;
+                height: 3em;
+            }
+        }
+    }
+}
 
 #audioTag{
     position: absolute;
     left: 100vw;
     opacity: 0;
     visibility: hidden;
+}
+
+#roomMembers-containner{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    #close-popup-out{
+        background-color: var(--primary-color-opacity);
+        position: fixed;
+        width: 100vw;
+        height: 100vh;
+    }
+    #roomMembers-content{
+        width: 40vw;
+        height: 70vh;
+        max-width: 20em;
+        max-height: 30em;
+        background-color: var(--tertiary-lite-color);
+        border: 1px solid var(--border-color2);
+        -webkit-box-shadow: 0px 0px 2px 0px var(--boder-color-primary);
+        -moz-box-shadow: 0px 0px 2px 0px var(--boder-color-primary);
+        box-shadow: 0px 0px 2px 0px var(--boder-color-primary);
+        border-radius: 8px;
+        z-index: 999999999;
+    }
+    #roomMembers-row{
+        padding: 0.4em;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        user-select: none;
+        -webkit-user-drag: none;
+        .roomMembers-col{
+            justify-content: space-between;
+            padding: 0.5em;
+            border-radius: 20em;
+            transition: 0.6s;
+            margin-top: 0.8em;
+            .usernameProfile-col{
+                color: var(--color-text-primary);
+                font: 500 1.2em 'Ubuntu', sans-serif;
+            }
+            .profileImg-col-containner{
+                width: fit-content;
+                .profileImg-col{
+                    width: 3em;
+                    background-color: var(--secundary-lite-color);
+                    border-radius: 20em;
+                }
+            }
+            .optionsUser-col {
+                cursor: pointer;
+                width: 2em;
+                text-align: end;
+                cursor: pointer;
+                .options-button{
+                    width: 1.5em;
+                    
+                }
+            }
+            &:hover{
+                background-color: var(--secundary-lite-color);
+                transition: 0.6s;
+                
+            }
+        }
+    }
+}
+
+#optinosUser-containner-op{
+    position: absolute;
+    display: none; 
+    left: 0;
+    top: 0;
+    width: 10em;
+    padding: 0.5em;
+    height: 15em;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--secundary-lite-color);
+    border-radius: 10px;
+    #close-menu-users-options{
+        width: 100vw;
+        height: 100vh;
+    }
+    #optinosUser-containner-list{
+        z-index: 99999;
+        width: 100%;
+        height: fit-content;
+        display: flex;
+        flex-direction: column;
+
+        .optinosUser-containner-list-item{
+            width: 100%;
+            padding: 0.8em;
+            color: var(--color-text-primary);
+            border-radius: 20em;
+            cursor: pointer;
+            font: 500 1em 'inter',sans-serif;
+            display: flex;
+            transition: 0.6s;
+            align-items: center;
+            &:not(:first-child){
+                margin-top: 0.6em;
+            }
+            &:hover{
+                transition: 0.6s;
+                background-color: var(--border-color);
+            }
+            .optionsUser-containner-list-item-svg{
+                width: 1.5em !important;
+                margin-right: 0.6em;
+                height: 1.5em !important;
+                color: var(--color-fill) !important;
+            }
+        }
+    }
 }

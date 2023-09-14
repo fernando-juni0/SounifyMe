@@ -15,7 +15,6 @@ const { getAuth,fetchSignInMethodsForEmail } = require('firebase/auth')
 const cloudinary = require('cloudinary')
 var ytdl = require('ytdl-core');
 const cors = require('cors');
-
 // let servers = require('./config/originals-servers')
 const app = express();
 
@@ -83,6 +82,9 @@ cloudinary.config({
 //TODO----------------SOCKET------------------
 io.on('connection', async(socket) => {
 
+    //TODO------Sockets---------
+    
+
     socket.on('initVote',async(data)=>{
         io.to(data.roomID).emit('reqVote', data)
         
@@ -148,43 +150,38 @@ io.on('connection', async(socket) => {
                         case 'youtube':
                             if (data.link.includes('/playlist')) {
                                 let playlistDataYt = await functions.getPlaylistYoutube(data.link);
-                                console.log(playlistDataYt);
                                 const promises = [];
                                 
                                 for (const [index, element] of playlistDataYt.entries()) {
                                     let matchLink = element.match(/[?&]v=([^&]+)/);
                                     let playlistID =  matchLink ? matchLink[1] : null;
                                     if (playlistID) {
-                                        const promise = ytdl.getInfo(playlistID).then(async(infoPlaylistLink) => {
-                                        const link = ytdl.chooseFormat(infoPlaylistLink.formats, { filter: 'audioonly' }).url;
-                                        const thumbnailURL = infoPlaylistLink.videoDetails.thumbnails[0].url;
-                                        const tituloDoVideo = infoPlaylistLink.videoDetails.title;
-                                        const match = tituloDoVideo.match(/^(.*?)\s*-\s*(.*)$/);
-                                        var banda = null;
-                                        var musica = null;
+                                        // const promise = ytdl.getInfo(playlistID).then(async(infoPlaylistLink) => {
+                                        // const link = ytdl.chooseFormat(infoPlaylistLink.formats, { filter: 'audioonly' }).url;
+                                        // const thumbnailURL = infoPlaylistLink.videoDetails.thumbnails[0].url;
+                                        // const tituloDoVideo = infoPlaylistLink.videoDetails.title;
+                                        // const match = tituloDoVideo.match(/^(.*?)\s*-\s*(.*)$/);
+                                        // var banda = null;
+                                        // var musica = null;
 
-                                        if (match) {
-                                            banda = match[1].trim();
-                                            musica = await removerTextosIndesejados(match[2].trim());
-                                        } else {
-                                            musica = await removerTextosIndesejados(tituloDoVideo);
-                                            banda = null;
-                                        }
-                                        return {
-                                            thumbnail: thumbnailURL,
-                                            musica: musica,
-                                            banda: banda,
-                                            link: link,
-                                            index: roomQueueCount + index
-                                        }
+                                        // if (match) {
+                                        //     banda = match[1].trim();
+                                        //     musica = await removerTextosIndesejados(match[2].trim());
+                                        // } else {
+                                        //     musica = await removerTextosIndesejados(tituloDoVideo);
+                                        //     banda = null;
+                                        // }
+                                        let linkData = await functions.getLinkYtData(element)
+                                        linkData.index = roomQueueCount + index
+                                        // return linkData
 
                                             // Adicione os dados ao arrayPlaylist ou faça o que for necessário aqui.
-                                        })
-                                        .catch((err) => {
-                                            console.error(err);
-                                        });
+                                        // })
+                                        // .catch((err) => {
+                                        //     console.error(err);
+                                        // });
 
-                                        promises.push(promise);
+                                        promises.push(linkData);
                                     } else {
                                         
                                         console.error('ID de playlist inválido:', element);
@@ -199,7 +196,6 @@ io.on('connection', async(socket) => {
                                 }
                             }else{
                                 let linkData = await functions.getLinkYtData(data.link)
-                                console.log(linkData);
                                 return linkData
                             } 
                             // if (ytdl.validateURL(data.link)) {
@@ -277,7 +273,6 @@ io.on('connection', async(socket) => {
                     let roomModifyAddPlaylist = roomDataPl.queue
                     var roomQueueCount = roomDataPl.queue.length + 1
                     await verifyLinkResult.playlistDataRes.forEach(async(element,index)=>{
-                        console.log(element);
                         let elementResolve = await Promise.resolve(element)
                         if (roomModifyAddPlaylist.length == 0 && index == 0) {
                             io.to(data.room).emit('getMuiscPlaylist', {user:data.user,typeResult:'play', date:data.date,queueIndex:roomQueueCount, linkInfos:elementResolve});
@@ -370,20 +365,34 @@ io.on('connection', async(socket) => {
                         })
                         break;
                     case 'parar a musica atual':
+                        if (data.other.link) {
+                            const roomDataClear = await db.findOne({colecao:'Conections',doc:data.roomID})
+                            let roomQueueClear = roomDataClear.queue
+                            let newArrayQueue = []
+                            let indexArray = 0
+                            await roomQueueClear.forEach((element,index)=>{
+                                indexArray ++ 
+                                if (element.link == data.other.link) {
+                                    indexArray -- 
+                                }else{
+                                    newArrayQueue.push({
+                                        link:element.link,
+                                        thumbnail: element.thumbnail,
+                                        banda:element.banda,
+                                        musica:element.musica,
+                                        index: indexArray
+                                    })
+                                }
+                            })
+                            await db.update('Conections',data.roomID,{
+                                musicaAtual:{},
+                                queue:newArrayQueue
+                            })
+                            io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
+                        }else{
+                            io.to(data.roomID).emit('Reqerror', {erroType:'empty',errorText:'Não tem nenhuma musica em reprodução para ser apagada!'});
+                        }
                         
-                        const roomDataClear = await db.findOne({colecao:'Conections',doc:data.roomID})
-                        let roomQueueClear = roomDataClear.queue
-                        await roomQueueClear.forEach((element,index)=>{
-                            if (element.link == data.other.link) {
-                                roomQueueClear.splice(index,1)
-                            }
-                            roomQueueClear.index = roomQueueClear.index - 1
-                        })
-                        await db.update('Conections',data.roomID,{
-                            musicaAtual:{},
-                            queue:roomQueueClear
-                        })
-                        io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
                         break;
                     case 'apagar a fila de reprodução':
                         io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,});
@@ -430,7 +439,7 @@ io.on('connection', async(socket) => {
     socket.on('joinRoom',async (data) => {
         let myUser = await db.findOne({colecao:'users',doc:data.uid})
         var room = await db.findOne({colecao:"Conections",doc:data.roomID})
-        
+
         var pessoas = room.pessoas
         socket.join(data.roomID);
         if (pessoas.includes(myUser.uid)) {
@@ -448,6 +457,26 @@ io.on('connection', async(socket) => {
         })
        
         socket.broadcast.emit('join_user',myUser.uid);
+
+        socket.on('disconnect', async () => {
+            if (pessoas.includes(data.uid)) {
+                socket.broadcast.emit('isMyUser',data.uid)
+            }
+    
+            await db.update('users',data.uid,{
+                joinroom:null
+            })
+            let removePessoa = pessoas
+            const index = await removePessoa.indexOf(data.uid);
+            if (index !== -1) {
+                await removePessoa.splice(index, 1);
+            }
+            await db.update('Conections',data.roomID,{
+                pessoas: await removePessoa
+            })
+            socket.broadcast.emit('leave_user',data.uid);
+            socket.leave(data.roomID)
+        });
     });
     socket.on('leaveRoom', async(data) => {
         var room = await db.findOne({colecao:"Conections",doc:data.roomID})

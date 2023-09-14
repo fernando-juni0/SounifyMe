@@ -30,7 +30,7 @@
     "socket.io": "^4.6.1",
     "spotify-web-api-node": "^5.0.2",
     "youtube-search-api": "^1.2.1",
-    "ytdl-core": "^4.11.5"
+    "ytdl-core": "^4.9.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

@@ -154,7 +154,7 @@ module.exports = {
     },
     frequenceData: async (dadosRecebidos)=>{
         if (dadosRecebidos.length === 0) {
-            console.log('Ainda não há dados recebidos.');
+            console.error('Ainda não há dados recebidos.');
             return null;
         }
     
@@ -196,7 +196,7 @@ module.exports = {
         let playlistId = await match && match[1] ? match[1] : null
 
         if (!playlistId) {
-            console.log('ID da playlist não encontrado.');
+            console.error('ID da playlist não encontrado.');
             return;
         }
         const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
@@ -206,7 +206,7 @@ module.exports = {
         }).then((res)=>{
             return res.json()
         }).catch(err=>{
-            console.log(err);
+            console.error(err);
             return
             
         });
@@ -227,7 +227,7 @@ module.exports = {
                 const info = await ytdl.getInfo(videoUrl).then((res)=>{
                     return res
                 }).catch(err=>{
-                    console.log(err);
+                    console.error(err);
                     return
                 });
                 
@@ -244,7 +244,6 @@ module.exports = {
                 index: queueIndex + index,
             })
         });
-        console.log(playlistMusicData);
         return playlistMusicData
     },
     searchTrackLink:async (songName)=> {
@@ -257,7 +256,7 @@ module.exports = {
         }).then((res)=>{
             return res
         }).catch(err=>{
-            console.log(err);
+            console.error(err);
             return
             
         });
@@ -270,7 +269,7 @@ module.exports = {
                 const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(track.external_urls.spotify)}`).then((res)=>{
                     return res
                 }).catch(err=>{
-                    console.log(err);
+                    console.error(err);
                     return 
                 });
                 
@@ -278,7 +277,7 @@ module.exports = {
                 const info = await ytdl.getInfo(data2.linksByPlatform.youtube.url).then((res)=>{
                     return res
                 }).catch(err=>{
-                    console.log(err);
+                    console.error(err);
                     return
                 });
                 
@@ -295,7 +294,7 @@ module.exports = {
             }
             
         } else {
-          console.log('Nenhuma música encontrada.');
+          console.error('Nenhuma música encontrada.');
         }
     },
     getPlaylistYoutube:async(playlistUrl)=>{
@@ -317,6 +316,22 @@ module.exports = {
         return videoLinks
     },
     getLinkYtData:async (linkVideo)=>{
+        function removerTextosIndesejados(texto) {
+            const padroes = [
+              /\(Vídeo Oficial\)/g,
+              /\(Official Lyric Video\)/g,
+              /\(Legendado\)/g,
+              /\(Official Music Video\)/g,
+              /\(tradução\)/g,
+              /\(legendado\)/g
+            ];
+          
+            padroes.forEach(p => {
+              texto = texto.replace(p, '');
+            });
+          
+            return texto;
+        }
         const matchLink = await linkVideo.match(/[?&]v=([^&]+)/);
         let playlistID = await matchLink ? matchLink[1] : null;
         const info = await ytdl.getInfo(playlistID)
@@ -325,17 +340,19 @@ module.exports = {
         }
         const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
         const thumbnailURL = info.videoDetails.thumbnails[0].url;
+        const tituloDoVideo = info.videoDetails.title;
+        const match = info.videoDetails.title.match(/^(.*?)\s*-\s*(.*)$/);
         var banda = null
         var musica = null
 
+    
         if (match) {
             banda = match[1].trim()
             musica = await removerTextosIndesejados(match[2].trim())
         } else {
             musica =await removerTextosIndesejados(tituloDoVideo);
-            banda = null
+            banda = info.videoDetails.author.name
         }
-        console.log(link);
         return {
             link:link,
             thumbnail:thumbnailURL,
