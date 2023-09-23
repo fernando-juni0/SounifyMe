@@ -326,7 +326,7 @@ html,body,#main-containner,#containner,#body-containner{
                         }
                     }
                     #server-list-right-others-infos-estilos{
-                        margin-top: 1.8em;
+                        margin-top: 1.8vh;
                         width: 100%;
                         overflow: hidden;
                         text-overflow: ellipsis;
@@ -336,7 +336,7 @@ html,body,#main-containner,#containner,#body-containner{
                         }
                     }
                     #server-list-right-others-infos-pessoas{
-                        margin-top: 1.8em;
+                        margin-top: 1.8vh;
                         #server-list-right-others-infos-pessoas-h1{
                             color: var(--color-text-primary);
                             font: 600 1em 'inter',sans-serif;
@@ -351,8 +351,12 @@ html,body,#main-containner,#containner,#body-containner{
                     align-items: center;
                     text-align: center;
                     #server-list-right-button-content{
-                        width: 12em;
-                        height: 4em;
+                        max-width: 12em;
+                        max-height: 4em;
+                        min-width: 6em;
+                        min-height: 1em;
+                        width: 100%;
+                        height: 100%;
                         border-radius: 20em;
                         background-color: rgb(4, 177, 4);
                         display: flex;
@@ -362,13 +366,12 @@ html,body,#main-containner,#containner,#body-containner{
                         cursor: pointer;
                         #server-list-right-button-span{
                             flex-grow: 1;
-                            margin-left: 1em;
+                           
                             color: var(--color-text-primary);
                             font: 600 1.2em 'inter',sans-serif;
                         }
                         #server-list-right-button-svg{
                             width: 2em;
-                            margin-right: 1em;
                         }
                     }
                 }
@@ -381,4 +384,26 @@ html,body,#main-containner,#containner,#body-containner{
             }
         }
     }
+}
+
+@media screen and (max-width: 1290px) {
+    #server-list-right-others-infos-estilos{
+        display: none !important;
+    }
+}
+@media screen and (max-width: 1180px) {
+    #room-right-music-name-h1{
+        font-size: 1em !important;
+
+    }
+    #room-right-title-h1,#server-list-right-others-infos-islocked-h1{
+        font-size: 1.2em !important;
+    }
+    #room-right-tocando{
+        font-size: 1.3em !important;
+    }
+    #room-right-music-banda-p,#server-list-right-others-infos-pessoas-h1{
+        font-size: 0.8em !important;
+    }
+
 }

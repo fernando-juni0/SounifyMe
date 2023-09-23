@@ -128,23 +128,6 @@ io.on('connection', async(socket) => {
                 var roomData = await db.findOne({colecao:'Conections',doc:data.room})
                 var roomQueue = roomData.queue
                 var roomQueueCount = roomQueue.length + 1
-
-                function removerTextosIndesejados(texto) {
-                    const padroes = [
-                      /\(Vídeo Oficial\)/g,
-                      /\(Official Lyric Video\)/g,
-                      /\(Legendado\)/g,
-                      /\(Official Music Video\)/g,
-                      /\(tradução\)/g,
-                      /\(legendado\)/g
-                    ];
-                  
-                    padroes.forEach(p => {
-                      texto = texto.replace(p, '');
-                    });
-                  
-                    return texto;
-                }
                 async function validLinkType(data) {
                      switch (data.type) {
                         case 'youtube':
@@ -416,6 +399,20 @@ io.on('connection', async(socket) => {
                     musicaAtual:roomDataQueue[data.other - 1]
                 })
                 break
+            case '/kick':
+                const roomDataKick = await db.findOne({colecao:'Conections',doc:data.roomID})
+                const roomPessoas = roomDataKick.pessoas
+                const index = await roomPessoas.indexOf(data.other);
+                if (index !== -1) {
+                    await roomPessoas.splice(index, 1);
+                }
+                
+                await db.update('Conections',data.roomID,{
+                    pessoas:roomPessoas
+                })
+
+                io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
+                break
         }
     })
 
@@ -501,7 +498,6 @@ io.on('connection', async(socket) => {
         socket.broadcast.emit('leave_user',data.uid);
         socket.leave(data.roomID)
     });
-
     socket.on('disconnect',async()=>{
         if (socket.user) {
             var room = await db.findOne({colecao:"Conections",doc:socket.room})
@@ -828,6 +824,28 @@ app.post("/unfolow/:uid", async(req,res)=>{
     res.status(200).json(responseData);
 })
 
+app.post('/findOne',async(req,res)=>{
+    const {colecao,doc} = req.body
+    var responseData = {}
+    let userdata = await db.findOne({colecao:colecao, doc:doc}).then((res)=>{
+        return {
+            displayName: res.displayName,
+            email: res.email,
+            uid: res.uid,
+            profilePic: res.profilePic
+        }
+    })
+    if (userdata) {
+        responseData.data = userdata
+        responseData.success = true
+    }else{
+        responseData.data = null
+        responseData.success = false
+    }
+    
+    res.status(200).json(responseData);
+})
+
 app.post('/findUser', async(req,res)=>{
     const {pageinPage, pageIndex,userUid} = req.body
     
@@ -847,7 +865,35 @@ app.post('/findUser', async(req,res)=>{
     
     res.status(200).json(responseData);
 })
-
+app.post('/findArrayUsers',async(req,res)=>{
+    var responseData = {}
+    await db.findOne({colecao:'Conections',doc:req.body.roomID}).then(async(res)=>{
+        let userData = await res.pessoas.map(async(result)=>{
+            let findUser = await db.findOne({colecao:'users',doc:result})
+            if (findUser) {
+                return {
+                    displayName: findUser.displayName,
+                    profilePic: findUser.profilePic,
+                    uid: findUser.uid
+                }  
+            }else{
+                return null
+            }
+            
+            
+        })
+        if (userData) {
+            responseData.success = true
+            responseData.data = await Promise.all(userData)
+            return
+        }else{
+            responseData.success = false
+            return 'error'
+        }
+        
+    })
+    res.status(200).json(responseData);
+})
 
 app.post('/editProfile/:uid',upload.single('file'),async(req,res)=>{
     var responseData = {}
