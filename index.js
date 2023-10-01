@@ -693,24 +693,23 @@ app.post('/auth/email/cadastro', async (req,res)=>{
 })
 
 
-app.post('/auth',(req,res)=>{
-    let user = JSON.parse(req.body.user)
+
+app.post('/auth',async(req,res)=>{
+    let user = req.body.user
+    const responseData = {};
     if (!req.session.uid) {
-        functions.verifyAuthToken(user.stsTokenManager.accessToken).then((result)=>{
-            if (result) {
-                req.session.uid = user.uid
-                req.session.accesstoken = user.stsTokenManager.accessToken
-                if (req.body.redirect) {
-                    return res.redirect(req.body.redirect)
-                }else{
-                    return res.redirect('/home')
-                }
-                
-            }else{
-                res.redirect('/logout')
-            }
-        })
+        let result = await functions.verifyAuthToken(user.stsTokenManager.accessToken)
+        if (result) {
+            req.session.uid = user.uid
+            req.session.accesstoken = user.stsTokenManager.accessToken
+            responseData.success = true
+        }else{
+            responseData.success = false
+        }
+    }else{
+        responseData.success = true
     }
+    res.status(200).json(responseData);
 })
 
 
