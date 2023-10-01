@@ -128,23 +128,6 @@ io.on('connection', async(socket) => {
                 var roomData = await db.findOne({colecao:'Conections',doc:data.room})
                 var roomQueue = roomData.queue
                 var roomQueueCount = roomQueue.length + 1
-
-                function removerTextosIndesejados(texto) {
-                    const padroes = [
-                      /\(Vídeo Oficial\)/g,
-                      /\(Official Lyric Video\)/g,
-                      /\(Legendado\)/g,
-                      /\(Official Music Video\)/g,
-                      /\(tradução\)/g,
-                      /\(legendado\)/g
-                    ];
-                  
-                    padroes.forEach(p => {
-                      texto = texto.replace(p, '');
-                    });
-                  
-                    return texto;
-                }
                 async function validLinkType(data) {
                      switch (data.type) {
                         case 'youtube':
@@ -156,31 +139,8 @@ io.on('connection', async(socket) => {
                                     let matchLink = element.match(/[?&]v=([^&]+)/);
                                     let playlistID =  matchLink ? matchLink[1] : null;
                                     if (playlistID) {
-                                        // const promise = ytdl.getInfo(playlistID).then(async(infoPlaylistLink) => {
-                                        // const link = ytdl.chooseFormat(infoPlaylistLink.formats, { filter: 'audioonly' }).url;
-                                        // const thumbnailURL = infoPlaylistLink.videoDetails.thumbnails[0].url;
-                                        // const tituloDoVideo = infoPlaylistLink.videoDetails.title;
-                                        // const match = tituloDoVideo.match(/^(.*?)\s*-\s*(.*)$/);
-                                        // var banda = null;
-                                        // var musica = null;
-
-                                        // if (match) {
-                                        //     banda = match[1].trim();
-                                        //     musica = await removerTextosIndesejados(match[2].trim());
-                                        // } else {
-                                        //     musica = await removerTextosIndesejados(tituloDoVideo);
-                                        //     banda = null;
-                                        // }
                                         let linkData = await functions.getLinkYtData(element)
                                         linkData.index = roomQueueCount + index
-                                        // return linkData
-
-                                            // Adicione os dados ao arrayPlaylist ou faça o que for necessário aqui.
-                                        // })
-                                        // .catch((err) => {
-                                        //     console.error(err);
-                                        // });
-
                                         promises.push(linkData);
                                     } else {
                                         
@@ -189,7 +149,7 @@ io.on('connection', async(socket) => {
                                     }
                                 }
 
-                                await Promise.all(promises); // Aguarde todas as chamadas assíncronas.
+                                await Promise.all(promises);
                                 return {
                                     type:'youtubePlaylist',
                                     playlistDataRes : promises
@@ -198,18 +158,6 @@ io.on('connection', async(socket) => {
                                 let linkData = await functions.getLinkYtData(data.link)
                                 return linkData
                             } 
-                            // if (ytdl.validateURL(data.link)) {
-                            //     if (ytdl.getURLVideoID(data.link)) {
-                            //         console.log('O link é um vídeo individual.');
-                            //     } else if (ytdl.getURLPlaylistID(data.link)) {
-                            //         console.log('O link é uma playlist.');
-                            //     } else {
-                            //         console.log('O link não é um vídeo nem uma playlist válida.');
-                            //     }
-                            // } else {
-                            //     console.log('O link não é válido para o YouTube.');
-                            // }
-                            
                             break;
                         case 'songName':
                             return await functions.searchTrackLink(data.link).then((res)=>{
@@ -225,11 +173,6 @@ io.on('connection', async(socket) => {
                         case 'spotify':
                             if (data.link.includes('/playlist/')) {
                                 return alert('Atualmente não aceitamos playlists do spotify')
-                                // let playlistData = await functions.getPlaylistMusic(data.link,roomQueueCount,io,data.room)
-                                // return {
-                                //     type:'spotifyPlaylist',
-                                //     playlistData:playlistData
-                                // }
                             }else{
                                 const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(data.link)}`);
                                 const data2 = await response2.json();
@@ -416,6 +359,20 @@ io.on('connection', async(socket) => {
                     musicaAtual:roomDataQueue[data.other - 1]
                 })
                 break
+            case '/kick':
+                const roomDataKick = await db.findOne({colecao:'Conections',doc:data.roomID})
+                const roomPessoas = roomDataKick.pessoas
+                const index = await roomPessoas.indexOf(data.other);
+                if (index !== -1) {
+                    await roomPessoas.splice(index, 1);
+                }
+                
+                await db.update('Conections',data.roomID,{
+                    pessoas:roomPessoas
+                })
+
+                io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
+                break
         }
     })
 
@@ -501,7 +458,6 @@ io.on('connection', async(socket) => {
         socket.broadcast.emit('leave_user',data.uid);
         socket.leave(data.roomID)
     });
-
     socket.on('disconnect',async()=>{
         if (socket.user) {
             var room = await db.findOne({colecao:"Conections",doc:socket.room})
@@ -529,9 +485,6 @@ io.on('connection', async(socket) => {
     })
 });
 
-
-// const codigo = require('crypto').randomBytes(10).toString('hex');
-// const invcodigo = parseInt(Math.random().toString().slice(2, 8))
 
 
 //TODO-----------POST CONFIGS-----------------
@@ -633,9 +586,9 @@ app.get('/conection',functions.isAuthenticated,async(req,res)=>{
         res.redirect('/login')
     }
 })
-
 app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
     await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
+       
         let seguindo = await functions.removeArrayEmpty(result.folowInfo.seguindo)
         var isFolow = null
         let isMyProfile = result.uid == req.params.uid ? true : false
@@ -648,10 +601,15 @@ app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
         myUser.userConta = result.uid == req.session.uid ? true : false
         myUser.isMyProfile = isMyProfile
         myUser.isFolow = isFolow == true ? true : false
+        myUser.blockedUsers = result.blockedUsers
         if (isMyProfile == true) {
             userProfile = myUser
         }else{
             await db.findOne({colecao:'users',doc:req.params.uid }).then( async(result1)=>{
+                if (result1 == undefined || result1.blockedUsers.includes(result.uid)) {
+                    res.redirect('/404/profile')
+                    return
+                }
                 let playlist = await functions.removeArrayEmpty(result1.playlist)
                 let seguidores = await functions.removeArrayEmpty(result1.folowInfo.seguidores)
                 let seguindo = await functions.removeArrayEmpty(result1.folowInfo.seguindo)
@@ -668,13 +626,12 @@ app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
                     },
                     playlist: playlist,
                     isMyProfile: isMyProfile,
-                    isFolow: isFolow == true ? true : false
+                    isFolow: isFolow == true ? true : false,
+                    userBockeds: result1.userBockeds
                 }
             })
             
         }
-        
-
         res.render('perfil',{user:myUser, userProfile:userProfile})
     }) 
 })
@@ -683,12 +640,9 @@ app.get('/auth/Google/login',(req,res)=>{
     res.render('google-login')
 })
 
-
-app.get('/playlist/:playlistUID',functions.isAuthenticated,(req,res)=>{
-
+app.get('/404/:type',(req,res)=>{
+    res.render('NotFoundPage',{type:req.params.type})
 })
-
-
 
 
 //TODO-----------------POST--------------------
@@ -828,6 +782,56 @@ app.post("/unfolow/:uid", async(req,res)=>{
     res.status(200).json(responseData);
 })
 
+app.post('/userBlock/:uid',async(req,res)=>{
+    var responseData = {}
+
+    await db.findOne({colecao:'users',doc:req.session.uid}).then( async(result)=>{
+        let userBockeds = result.blockedUsers
+        await userBockeds.push(req.params.uid)
+        await db.update('users',req.session.uid, {
+            blockedUsers:userBockeds
+        })
+    }) 
+    responseData.success = true
+    res.status(200).json(responseData);
+})
+app.post('/userUnBlock/:uid',async(req,res)=>{
+    var responseData = {}
+
+    await db.findOne({colecao:'users',doc:req.session.uid}).then( async(result)=>{
+        let userBockeds = result.blockedUsers
+        let index = userBockeds.indexOf(req.params.uid);
+        await userBockeds.splice(index, 1);
+        await db.update('users',req.session.uid, {
+            blockedUsers:userBockeds
+        })
+    }) 
+    responseData.success = true
+    res.status(200).json(responseData);
+})
+
+app.post('/findOne',async(req,res)=>{
+    const {colecao,doc} = req.body
+    var responseData = {}
+    let userdata = await db.findOne({colecao:colecao, doc:doc}).then((res)=>{
+        return {
+            displayName: res.displayName,
+            email: res.email,
+            uid: res.uid,
+            profilePic: res.profilePic
+        }
+    })
+    if (userdata) {
+        responseData.data = userdata
+        responseData.success = true
+    }else{
+        responseData.data = null
+        responseData.success = false
+    }
+    
+    res.status(200).json(responseData);
+})
+
 app.post('/findUser', async(req,res)=>{
     const {pageinPage, pageIndex,userUid} = req.body
     
@@ -847,7 +851,35 @@ app.post('/findUser', async(req,res)=>{
     
     res.status(200).json(responseData);
 })
-
+app.post('/findArrayUsers',async(req,res)=>{
+    var responseData = {}
+    await db.findOne({colecao:'Conections',doc:req.body.roomID}).then(async(res)=>{
+        let userData = await res.pessoas.map(async(result)=>{
+            let findUser = await db.findOne({colecao:'users',doc:result})
+            if (findUser) {
+                return {
+                    displayName: findUser.displayName,
+                    profilePic: findUser.profilePic,
+                    uid: findUser.uid
+                }  
+            }else{
+                return null
+            }
+            
+            
+        })
+        if (userData) {
+            responseData.success = true
+            responseData.data = await Promise.all(userData)
+            return
+        }else{
+            responseData.success = false
+            return 'error'
+        }
+        
+    })
+    res.status(200).json(responseData);
+})
 
 app.post('/editProfile/:uid',upload.single('file'),async(req,res)=>{
     var responseData = {}
@@ -962,6 +994,31 @@ app.post('/findconnection',async(req,res)=>{
     responseData.success = true
     res.status(200).json(responseData);
 })
+
+
+
+app.post('/createRoom',async(req,res)=>{
+    var responseData = {}
+    const roomId = require('crypto').randomBytes(11).toString('hex');
+    const roomInvateCode = Math.random().toString().slice(2, 8);
+    let model = {
+        roomId:roomId,
+        roomInvateCode:roomInvateCode,
+        islocked: req.islocked,
+        pass: req.pass,
+        maxpessoas: req.maxpessoas,
+        estilos: req.estilos,
+        roomName: req.roomName,
+        roomPic: req.roomPic
+    }
+    await functions.createServerDB(model)
+    responseData.success = true
+    responseData.data = model
+    res.status(200).json(responseData);
+})
+
+
+
 
 
 //TODO AUTH LOGIN

@@ -3,7 +3,8 @@ const models = require('./Firebase/models');
 const ytdl = require('ytdl-core');
 const axios = require('axios');
 const authentication = require('./Firebase/authentication');
-const config = require('./config/index-config')
+const config = require('./config/index-config');
+const db = require('./Firebase/db');
 module.exports = {
     isAuthenticated: async (req, res, next)=> {
         const idToken = req.session.accesstoken;
@@ -359,6 +360,29 @@ module.exports = {
             banda:banda,
             musica:musica
         }
+    },
+    createServerDB: async(data)=>{
+        await models.create('Conections',data.roomId,{
+            estilos:data.estilos,
+            islocked: data.islocked,
+            maxpessoas:data.maxpessoas ,
+            mensages:[],
+            musicOptions:{
+                loop:false,
+            },
+            musics:[],
+            pass: data.islocked == true ? data.pass : null,
+            pessoas:[],
+            positionQueue:0,
+            queue:[],
+            roomId:data.roomId,
+            roomInvateCode:data.roomInvateCode,
+            roomName: data.roomName,
+            roomPic: data.roomPic ? data.roomPic : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png'
+        }).then(()=>{
+            return true
+        })
+        return 
     }
     
 }

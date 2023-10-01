@@ -1,6 +1,6 @@
 const { initializeApp } = require('firebase/app')
 const { getAuth, GoogleAuthProvider, updateCurrentUser, browserSessionPersistence,setPersistence, signInWithPopup ,createUserWithEmailAndPassword,fetchSignInMethodsForEmail, onAuthStateChanged, signInWithEmailAndPassword, signOut } = require('firebase/auth')
-const functions = require('../functions')
+var functions = require('../functions')
 const db = require('./models')
 
 const SpotifyWebApi = require('spotify-web-api-node');
@@ -21,7 +21,7 @@ async function createDb(user) {
             return
         }else{
             let displayName = user.displayName == null || user.displayName == undefined ? user.email.split('@')[0] : user.displayName
-            let displayNameModify = await functions.stringLimit(displayName,16)
+            let displayNameModify = await require('../functions').stringLimit(displayName,16)
             let idCount = await db.findOne({colecao:"statistics",doc:'users'})
             await db.create('users',user.uid,{
                 id: idCount.userCount,
@@ -43,8 +43,8 @@ async function createDb(user) {
                     seguidores: [],
                     seguindo: []
                 },
-
-                joinroom:null
+                joinroom:null,
+                blockedUsers:[]
             }).then(()=>{
                 
             })
@@ -61,7 +61,7 @@ module.exports = {
         }
         if (userdata.uid) {
             let accessToken = userdata.stsTokenManager.accessToken
-            await functions.verifyAuthToken(accessToken).then(async(result)=>{
+            await require('../functions').verifyAuthToken(accessToken).then(async(result)=>{
                 if (result) {
                     req.session.uid = result
                     req.session.accesstoken = accessToken
@@ -77,7 +77,7 @@ module.exports = {
                 const user = userCredential.user;
                 if (user) {
                     let accessToken = user.stsTokenManager.accessToken
-                    await functions.verifyAuthToken(accessToken).then((result)=>{
+                    await require('../functions').verifyAuthToken(accessToken).then((result)=>{
                         if (result) {
                             req.session.uid = result
                             req.session.accesstoken = accessToken
@@ -103,7 +103,7 @@ module.exports = {
                 if (user) {
                     user.displayName = req.body.username
                     let accessToken = user.stsTokenManager.accessToken
-                    await functions.verifyAuthToken(accessToken).then(async(result)=>{
+                    await require('../functions').verifyAuthToken(accessToken).then(async(result)=>{
                         if (result) {
                             req.session.uid = result
                             req.session.accesstoken = accessToken
