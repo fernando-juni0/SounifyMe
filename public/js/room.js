@@ -264,41 +264,41 @@ socket.on("reqVote", (data) => {
                 </div> 
             `;
         document.getElementById("vote-acept").addEventListener("click", async () => {
-                if (document.getElementById("vote-acept").getAttribute("disabled") == "disabled") {
-                    return;
-                }
-                document.getElementById("main-chat-vote-votes-number").innerText =
-                    parseInt(document.getElementById("main-chat-vote-votes-number").textContent) + 1;
-                document.getElementById("vote-acept").setAttribute("disabled", "disabled");
-                document.getElementById("vote-recuse").setAttribute("disabled", "disabled");
-                await socket.emit("resVote", {
-                    other: data.other,
-                    command: data.command,
-                    action: data.action,
-                    numberRecuses: data.numberRecuses,
-                    numberVotes: data.numberVotes + 1,
-                    roomID: roomID,
-                    roomUserNumber: roomUserNumber + 1,
-                    uid: uid,
-                });
+            if (document.getElementById("vote-acept").getAttribute("disabled") == "disabled") {
+                return;
+            }
+            document.getElementById("main-chat-vote-votes-number").innerText =
+                parseInt(document.getElementById("main-chat-vote-votes-number").textContent) + 1;
+            document.getElementById("vote-acept").setAttribute("disabled", "disabled");
+            document.getElementById("vote-recuse").setAttribute("disabled", "disabled");
+            await socket.emit("resVote", {
+                other: data.other,
+                command: data.command,
+                action: data.action,
+                numberRecuses: data.numberRecuses,
+                numberVotes: data.numberVotes + 1,
+                roomID: roomID,
+                roomUserNumber: roomUserNumber + 1,
+                uid: uid,
             });
+        });
         document.getElementById("vote-recuse").addEventListener("click", async () => {
-                if (document.getElementById("vote-recuse").getAttribute("disabled") =="disabled") {
-                    return;
-                }
-                document.getElementById("vote-acept").setAttribute("disabled", "disabled");
-                document.getElementById("vote-recuse").setAttribute("disabled", "disabled");
-                await socket.emit("resVote", {
-                    other: data.other,
-                    command: data.command,
-                    action: data.action,
-                    numberRecuses: data.numberRecuses + 1,
-                    numberVotes: data.numberVotes,
-                    roomID: roomID,
-                    roomUserNumber: roomUserNumber + 1,
-                    uid: uid,
-                });
+            if (document.getElementById("vote-recuse").getAttribute("disabled") =="disabled") {
+                return;
+            }
+            document.getElementById("vote-acept").setAttribute("disabled", "disabled");
+            document.getElementById("vote-recuse").setAttribute("disabled", "disabled");
+            await socket.emit("resVote", {
+                other: data.other,
+                command: data.command,
+                action: data.action,
+                numberRecuses: data.numberRecuses + 1,
+                numberVotes: data.numberVotes,
+                roomID: roomID,
+                roomUserNumber: roomUserNumber + 1,
+                uid: uid,
             });
+        });
         document.getElementById("main-chat-row").scrollTop = document.getElementById("main-chat-row").scrollHeight;
     }
 });
@@ -383,13 +383,34 @@ function optionsActUser() {
             menuOptions.style.display = 'flex';
             menuOptions.style.left = event.clientX + 30 + "px";
             menuOptions.style.top = event.clientY + "px";
-     
 
             document.getElementById("profileView").addEventListener("click", async() => {
                 await socket.emit("leaveRoom", { roomID: roomID, uid: uid });
                 location.href = "/user/" + Useruid;
             });
-
+            document.getElementById('bloquearUser').addEventListener('click',()=>{
+                document.getElementById('bloquearUser').addEventListener('click',()=>{
+                    $.ajax({
+                        traditional: true,
+                        url: '/userBlock/' + Useruid,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify( {
+    
+                        } ),
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success == true) {
+                                document.getElementById('bloquearUser')
+                            }
+                            
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(error);
+                        }
+                    })
+                })
+            })
             document.getElementById("expulsarUserConec").addEventListener("click", async () => {
                 if (roomUserNumber <= 1) {
                     errorNotify('Existem poucos usuários conectados a sala, por isso não poderá haver uma votação justa!')
@@ -426,6 +447,7 @@ function optionsActUser() {
                         // Remove os ouvintes de clique do menu
                         document.getElementById("profileView").removeEventListener("click", () => {});
                         document.getElementById("expulsarUserConec").removeEventListener("click", () => {});
+                        document.getElementById('bloquearUser').removeEventListener("click", () => {});
                         document.removeEventListener("click", hideMenuOnClickOutside);
                 
                         // Chame optionsActUser novamente para configurar os ouvintes
