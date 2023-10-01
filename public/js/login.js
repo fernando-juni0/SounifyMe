@@ -19,9 +19,32 @@ document.getElementById('body-containner').hide()
 
 auth.onAuthStateChanged(function(user) {
     if (user) {
-        document.getElementById('userAutenticate').value = JSON.stringify(user)
-        document.getElementById('userRedirect').value = params.get('redirect')
-        document.getElementById('formignore').submit()
+        $.ajax({
+            traditional: true,
+            url: '/auth',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify( {
+                user:user,
+                redirect:params.get('redirect')
+            } ),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success == true) {
+                    if (params.get('redirect')) {
+                        location.href = params.get('redirect')
+                    }else{
+                        location.href = '/home'
+                    }
+                }else{
+                    location.href = '/logout'
+                }
+                
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        })
     }else{
         document.getElementById('body-containner').show('block')
     }
