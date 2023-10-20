@@ -69,6 +69,20 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div id="direct-connection-popup-containner" style="display: none;">
+                                    <div id="direct-connection-popup-close"></div>
+                                    <div id="direct-connection-popup-content">
+                                        <div id="direct-connection-top">
+                                            <div id="close-popup-button-direct">
+                                                <img src="../public/assets/svg/close_g0xorss70bu5.svg" alt="">
+                                            </div>
+                                            <h1 id="direct-connection-h1">Insira o codigo para acessar a sala</h1>
+                                           
+                                        </div>
+                                        <input type="text" id="direct-connection-input" placeholder="Insira o codigo">
+                                        <button id="direct-connection-button">Entrar</button>
+                                    </div>
+                                </div>
                                 <div id="server-list-buttons-containner">
                                     <div id="server-list-buttons">
                                         <input class="server-list-buttons-class" id="direct-button" type="button" value="Conexão Direta">
@@ -132,7 +146,6 @@
         </div>
     </div>
     <%- include('./reusable/script.ejs') %>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js" integrity="sha512-Z6C1p1NIexPj5MsVUunW4pg7uMX6/TT3CUVldmjXx2kpip1eZcrAnxIusDxyFIikyM9A61zOVNgvLr/TGudOQg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
     <script src="../public/js/conection.js"></script>
 </body>
 </html>

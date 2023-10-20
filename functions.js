@@ -383,6 +383,31 @@ module.exports = {
             return true
         })
         return 
+    },
+    calcularDiferencaTempo: async(dataFornecida)=>{
+        const dataFornecidaObj = new Date(dataFornecida);
+      
+        if (isNaN(dataFornecidaObj)) {
+          return "Data inválida.";
+        }
+      
+        const dataAtual = new Date();
+        const diferencaEmMilissegundos = dataAtual - dataFornecidaObj;
+      
+        const segundos = Math.floor(diferencaEmMilissegundos / 1000);
+        const minutos = Math.floor(segundos / 60);
+        const horas = Math.floor(minutos / 60);
+        const dias = Math.floor(horas / 24);
+      
+        if (dias > 0) {
+          return `${dias} dia${dias > 1 ? 's' : ''}`;
+        } else if (horas > 0) {
+          return `${horas} hora${horas > 1 ? 's' : ''}`;
+        } else if (minutos > 0) {
+          return `${minutos} min${minutos > 1 ? 's' : ''}`;
+        } else {
+          return `${segundos} sec${segundos > 1 ? 's' : ''}`;
+        }
     }
     
 }

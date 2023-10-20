@@ -515,7 +515,6 @@ app.post('/getRoom/:roomID',async(req,res)=>{
 //TODO-----------------GET--------------------
 
 
-
 //TODO PAGES
 
 app.get('/', (req,res)=>{
@@ -568,7 +567,6 @@ app.get('/room/:roomid',functions.isAuthenticated,async(req,res)=>{
     if (req.session.uid) {
         let room = await db.findOne({colecao:'Conections',doc:req.params.roomid})
         let user = await db.findOne({colecao:"users",doc:req.session.uid})
-        
         res.render('room',{myUser:user,room:room})
     } else {
         res.redirect('/login')
@@ -718,8 +716,10 @@ app.post("/folow/:uid", async(req,res)=>{
     await db.findOne({colecao:'users',doc:req.params.uid}).then( async(result1)=>{
         if (result1.uid) {
             responseData.success = true
+            responseData.seguidores = result1.folowInfo.seguidores.length + 1
         }else{
             responseData.success = false
+            responseData.seguidores = null
         }
         let newFolowMe = result1.folowInfo.seguidores
         newFolowMe.push(req.session.uid)
@@ -742,7 +742,6 @@ app.post("/folow/:uid", async(req,res)=>{
         
 
     }) 
-    
     res.status(200).json(responseData);
 })
 
@@ -751,8 +750,10 @@ app.post("/unfolow/:uid", async(req,res)=>{
     await db.findOne({colecao:'users',doc:req.params.uid}).then( async(result1)=>{
         if (result1.uid) {
             responseData.success = true
+            responseData.seguidores = result1.folowInfo.seguidores.length - 1
         }else{
             responseData.success = false
+            responseData.seguidores = null
         }
         let newFolowMe = result1.folowInfo.seguidores
         let index = newFolowMe.indexOf(req.params.uid);
@@ -777,7 +778,6 @@ app.post("/unfolow/:uid", async(req,res)=>{
         }) 
         
     }) 
-    
     res.status(200).json(responseData);
 })
 
@@ -985,16 +985,47 @@ app.post('/createPlaylist/:uid', async(req,res)=>{
 })
 
 
+
 app.post('/findconnection',async(req,res)=>{
     var responseData = {}
-
-    let room = await db.findOne({colecao:'Conections',doc:req.body.roomId})
-    responseData.room = room
-    responseData.success = true
+    if (req.body.roomId == 'random') {
+        let AllRooms = await db.findAll({colecao:'Conections'})
+        const randomIndex = Math.floor(Math.random() * AllRooms.length);
+        const randomDocument = await AllRooms[randomIndex]
+        if (randomDocument) {
+            responseData.room = randomDocument
+            responseData.success = true 
+        }else{
+            responseData.room = null
+            responseData.success = false 
+        }
+        
+    }else{
+        let room = await db.findOne({colecao:'Conections',doc:req.body.roomId})
+        if (room) {
+            responseData.room = room
+            responseData.success = true 
+        }else{
+            responseData.room = null
+            responseData.success = false 
+        }
+    }
     res.status(200).json(responseData);
 })
 
+app.post('/findRoomInv',async(req,res)=>{
+    var responseData = {}
+    let room = await db.findOne({colecao:'Conections',where:['roomInvateCode',"==",parseInt(req.body.codeInv)]})
+    if (room) {
 
+        responseData.success = true
+        responseData.roomID = room.roomId
+    }else{
+        responseData.success = false
+        responseData.roomID = null
+    }
+    res.status(200).json(responseData);
+})
 
 app.post('/createRoom',async(req,res)=>{
     var responseData = {}
