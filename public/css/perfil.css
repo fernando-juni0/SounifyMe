@@ -129,6 +129,7 @@
     padding: 1em;
     cursor: pointer;
     width: 8em;
+    height: 4em;
     border: none;
     font: 800 1em 'Inter', sans-serif;
     background-color: var(--purpple-low-color);
@@ -784,9 +785,9 @@
         display: flex; 
         left: 0;
         top: 0;
-        width: 10em;
+        width: 12em;
         padding: 0.5em;
-        height: 12em;
+        height: 16em;
         align-items: center;
         justify-content: center;
         background-color: var(--secundary-lite-color);
@@ -826,4 +827,30 @@
         }
     }
     
+}
+
+#profile-button-containner{
+    display: flex;
+}
+#profile-options{
+    margin-top: 2em;
+    margin-left: 1em;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+#profile-options-svg{
+    width: 2em;
+    height: 2em;
+    cursor: pointer;
+}
+#AdicionarUser{
+    white-space: nowrap;
+
+}
+#AdicionarUser svg{
+    margin-right: 0.4em;
+    color: var(--color-fill);
+    fill: var(--color-fill);
+    width: 2em;
+    height: 2em;
 }

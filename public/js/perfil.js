@@ -254,11 +254,18 @@ document.getElementById('seguindo').addEventListener('click',async()=>{
     })
 
 })
-
-if (document.getElementById('button-seguir')) {
+if (isMyProfile == 'false') {
+    let buttonOptions = document.getElementById('profile-options-svg')
     let buttonSeguir = document.getElementById('button-seguir')
     let optionsFolow = document.getElementById('options-folow-user-content')
     let optionsContainner = document.getElementById('options-folow-user-containner')
+    if (buttonSeguir.getAttribute('data-folow') == "false") {
+        document.getElementById('profile-options').hide()
+    }else{
+        document.getElementById('profile-options').show()
+    }
+
+
     buttonSeguir.addEventListener('click',()=>{
         if (buttonSeguir.getAttribute('data-folow') == "false") {
             $.ajax({
@@ -270,7 +277,8 @@ if (document.getElementById('button-seguir')) {
                         buttonSeguir.setAttribute('data-folow',true)
                         buttonSeguir.classList.add('seguindo')
                         let seguidores = document.querySelector('#seguidores .number-info')
-                        seguidores.innerHTML =  parseInt(seguidores.innerHTML) + 1
+                        seguidores.innerHTML = response.seguidores
+                        document.getElementById('profile-options').show()
                     }
                 },
                 error: function(xhr, status, error) {
@@ -278,75 +286,123 @@ if (document.getElementById('button-seguir')) {
                 }
             })
         }else{
-
-            optionsFolow.css({
-                left: buttonSeguir.offsetLeft - 10 + "px" ,
-                top: buttonSeguir.offsetTop + buttonSeguir.offsetHeight + 10 + 'px',
-            })
-            optionsContainner.show('block')
             
-            document.getElementById('bloquearUser').addEventListener('click',()=>{
-                $.ajax({
-                    traditional: true,
-                    url: '/userBlock/' + uid,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify( {
+            $.ajax({
+                traditional: true,
+                url: '/unfolow/' + uid,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify( {
 
-                    } ),
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success == true) {
-                            location.reload()
-                        }
-                        
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(error);
+                } ),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success == true) {
+                        buttonSeguir.setAttribute('data-folow',false)
+                        buttonSeguir.classList.remove('seguindo')
+                        let seguidores = document.querySelector('#seguidores .number-info')
+                        seguidores.innerHTML = response.seguidores
+                        document.getElementById('profile-options').hide()
                     }
-                })
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
             })
-
-            document.getElementById('denunciarUser').addEventListener('click',()=>{
-                location.href = '/denunciar/' + uid
-            })
-            
-            document.getElementById('pararDeSeguir').addEventListener('click',()=>{
-                optionsContainner.hide()
-                $.ajax({
-                    traditional: true,
-                    url: '/unfolow/' + uid,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify( {
-
-                    } ),
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success == true) {
-                            buttonSeguir.setAttribute('data-folow',false)
-                            buttonSeguir.classList.remove('seguindo')
-                            let seguidores = document.querySelector('#seguidores .number-info')
-                            seguidores.innerHTML =  parseInt(seguidores.innerHTML) - 1
-
-                        }
-                        
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(error);
-                    }
-                })
-                
-            })
-            
-            document.getElementById('close-options-folow-user').addEventListener('click',()=>{
-                optionsContainner.hide()
-            })
-            
         }
+    })  
+
+    buttonOptions.addEventListener('click',(event)=>{
+        optionsFolow.css({
+            left: event.clientX - 10 + "px" ,
+            top: event.clientY + 10 + 'px',
+        })
+        optionsContainner.show('block')
+        
+        document.getElementById('bloquearUser').addEventListener('click',()=>{
+            $.ajax({
+                traditional: true,
+                url: '/userBlock/' + uid,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify( {
+
+                } ),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success == true) {
+                        location.reload()
+                    }
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            })
+        })
+
+        document.getElementById('AdicionarUser').addEventListener('click',()=>{
+            $.ajax({
+                traditional: true,
+                url: '/addFriend/' + uid,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify( {
+
+                } ),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success == true) {
+                        
+                    }
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            })
+        })
+
+        document.getElementById('denunciarUser').addEventListener('click',()=>{
+            location.href = '/denunciar/' + uid
+        })
+        
+        document.getElementById('pararDeSeguir').addEventListener('click',()=>{
+            optionsContainner.hide()
+            $.ajax({
+                traditional: true,
+                url: '/unfolow/' + uid,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify( {
+
+                } ),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success == true) {
+                        buttonSeguir.setAttribute('data-folow',false)
+                        buttonSeguir.classList.remove('seguindo')
+                        let seguidores = document.querySelector('#seguidores .number-info')
+                        seguidores.innerHTML =  response.seguidores
+                        document.getElementById('profile-options').hide()
+                    }
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            })
+            
+        })
+        
+        document.getElementById('close-options-folow-user').addEventListener('click',()=>{
+            optionsContainner.hide()
+        })
+            
+        
     })
 }
-
 if (document.getElementById('desblock')) {
     document.getElementById('desblock').addEventListener('click',()=>{
         $.ajax({
