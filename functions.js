@@ -150,7 +150,10 @@ module.exports = {
             },
             playlist: playlist,
             playlistString: JSON.stringify(playlist),
-            joinroom:result.joinroom
+            joinroom:result.joinroom,
+            myNots: result.myNots ? result.myNots : null,
+            invsPendente:result.invsPendente ? result.invsPendente : null,
+            friends:result.friends ? result.friends : []
         }
     },
     frequenceData: async (dadosRecebidos)=>{

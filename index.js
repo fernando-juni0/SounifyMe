@@ -625,7 +625,8 @@ app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
                     playlist: playlist,
                     isMyProfile: isMyProfile,
                     isFolow: isFolow == true ? true : false,
-                    userBockeds: result1.userBockeds
+                    userBockeds: result1.userBockeds,
+                    friends:result1.friends ? result1.friends : []
                 }
             })
             
@@ -1046,6 +1047,166 @@ app.post('/createRoom',async(req,res)=>{
     responseData.data = model
     res.status(200).json(responseData);
 })
+
+
+app.post('/createNot', async(req,res)=>{
+    
+    const userinvitador = req.body.userinvitador ? req.body.userinvitador : req.session.uid
+    const {type,userinvitado,date} = req.body
+   
+    switch (type) {
+        case 'inv-friend':
+            
+            let myData = await db.findOne({colecao:'users',doc:userinvitador})
+            let userinvData = await db.findOne({colecao:'users',doc:userinvitado})
+            if (myData.uid && userinvData.uid) {
+                const isInvited = await myData.invsPendente.some(objeto => Object.keys(objeto).some(chave => objeto[chave] === userinvitado))
+                
+                if (isInvited == true) {
+                    
+                    res.status(200).json({
+                        success:false,
+                        data:null
+                    });
+                }else{
+                    let invs = myData.invsPendente ? myData.invsPendente : []
+                    let invs2 = userinvData.invsPendente ? userinvData.invsPendente : []
+                    let model = {
+                        type:type,
+                        userinvitado: userinvitado,
+                        userinvitador: {
+                            displayName: myData.displayName,
+                            profilePic: myData.profilePic,
+                            uid: myData.uid
+                        },
+                        date:date
+                    }
+
+                    await invs.push(model)
+                    await invs2.push(model)
+    
+                    db.update('users',userinvitador,{
+                        invsPendente:invs
+                    })
+    
+                    db.update('users',userinvitado,{
+                        myNots:invs2
+                    })
+    
+    
+                    
+                    res.status(200).json({
+                        success:true,
+                        data:model
+                    });
+                    
+                }
+            }else{
+                res.status(200).json({
+                    success:false,
+                    data:null
+                });
+            }
+            
+            
+        
+            
+            break;
+    
+        default:
+            break;
+    }
+
+})
+
+
+app.post('/reqMyNots/:uid',async(req,res)=>{
+    let {myNots} = await db.findOne({colecao:'users',doc:req.params.uid})
+    res.status(200).json({
+        success: true,
+        data: myNots ? myNots : null
+    });
+})
+
+app.post('/notOptions',async(req,res)=>{
+    var responseData = {}
+    const {type,attribute,userInv,myUser} = req.body
+    let userinvitado = await db.findOne({colecao:'users',doc:userInv})
+    let userInvitador = await db.findOne({colecao:'users',doc:myUser})
+    switch (type) {
+        case 'inv-friend':
+            if (attribute == 'sim') {
+                let friends = userinvitado.friends ? userinvitado.friends : []
+                let friends2 = userInvitador.friends ? userInvitador.friends : []
+                let invsPendente = userinvitado.invsPendente
+                invsPendente = await invsPendente.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                let myNots = await userInvitador.myNots
+                myNots = await myNots.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                if (friends2.includes(userinvitado.uid) == false) {
+                    await friends2.push(userinvitado.uid)
+                }
+                if (friends.includes(userInvitador.uid) == false) {
+                    await friends.push(userInvitador.uid)
+                }
+                db.update('users',userinvitado.uid,{
+                    friends:friends,
+                    invsPendente: invsPendente
+                })
+                db.update('users',userInvitador.uid,{
+                    friends:friends2,
+                    myNots: myNots
+                })
+            }else{
+                let invsPendente2 = userinvitado.invsPendente
+                invsPendente2 = await invsPendente2.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                let myNots2 = await userInvitador.myNots
+                myNots2 = await myNots2.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                db.update('users',userinvitado.uid,{
+                    invsPendente: invsPendente2
+                })
+                db.update('users',userInvitador.uid,{
+                    myNots: myNots2
+                })
+            }
+            break;
+    
+        default:
+            break;
+    }
+
+
+    res.status(200).json({
+        success:true
+    });
+})
+
+
+app.post('/desfFriend',async(req,res)=>{
+
+    let user1 = await db.findOne({colecao:'users', doc:req.session.uid})
+    let user1Friends = user1.friends
+    const index = await user1Friends.indexOf(req.body.profileUser);
+    if (index !== -1) {
+        await user1Friends.splice(index, 1);
+    }
+    db.update('users',user1.uid,{
+        friends:user1Friends,
+    })
+    let user2 = await db.findOne({colecao:'users',doc:req.body.profileUser})
+    let user2Friends = user2.friends
+    const index2 = await user2Friends.indexOf(req.session.uid);
+    if (index2 !== -1) {
+        await user2Friends.splice(index, 1);
+    }
+    db.update('users',user2.uid,{
+        friends:user2Friends,
+    })
+    
+    res.status(200).json({
+        success:true,
+    });        
+})
+
 
 
 

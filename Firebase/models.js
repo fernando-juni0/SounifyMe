@@ -1,5 +1,5 @@
 const db = require('./db.js')
-
+const { Readable } = require('stream');
 
 async function  model(props,firebase) {
     let arrayData = []
@@ -15,8 +15,31 @@ async function  model(props,firebase) {
 
 module.exports = {
     findAll: async (props)=> {
-        const firebaseData = await db.collection(props.colecao).get();
-        return model(props, firebaseData).then((res)=>{ return res })
+        const firebaseData = db.collection(props.colecao);
+        return new Promise((resolve, reject) => {
+            const outputStream = new Readable({ objectMode: true });
+            outputStream._read = () => {};
+        
+            firebaseData.get().then((snapshot) => {
+                snapshot.forEach((doc) => {
+                  const data = doc.data();
+                  outputStream.push(data);
+                });
+        
+                outputStream.push(null); // Indica o fim da stream
+                resolve(outputStream.toArray());
+            }).catch((error) => {
+                console.error('Erro ao buscar dados do Firestore:', error);
+                reject(error);
+            });
+        
+            outputStream.on('error', (err) => {
+                console.error(err);
+                reject(err);
+            });
+        });
+        
+        // return model(props, firebaseData).then((res)=>{ return res })
     },
     findOne: async (props)=>{
 

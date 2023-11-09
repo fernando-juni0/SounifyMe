@@ -39,6 +39,8 @@ class AppController{
             return this
         }
 
+        
+
         Element.prototype.show = function (res) {
             //Mostra os elementos da pagina
             if (res) {
@@ -73,6 +75,13 @@ class AppController{
                 this.style[name] = styles[name]
             }
             return this
+        }
+
+
+        Date.prototype.formatString = (date)=>{
+            const anoAtual = date.getFullYear().toString().substring(2);
+            const dataHoraFormatada = date.toLocaleString("pt-BR").replace("20" + anoAtual, anoAtual).replace(/:\d{2}$/, "").replace(",", " ás");
+            return dataHoraFormatada
         }
     }
 }
