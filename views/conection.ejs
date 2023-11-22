@@ -20,7 +20,7 @@
 
                     <div id="server-list-containner">
                         <div id="server-list-content">
-                            <div id="server-list-left-content">
+                            <div id="server-list-left-content" style="width: 100%;">
                                 <div id="server-list-left-search-containner">
                                     <div id="server-list-left-search-content">
                                         <input type="text" placeholder="Pesquise um servidor, musicas, estilos musicais ou artistas." name="servidor" id="find-room-input">
@@ -44,7 +44,7 @@
                                                                 <span class="server-list-name-span"><%= element.roomName %></span>
                                                             </div>
                                                             <div class="server-list-musicAc">
-                                                                <span class="server-list-musicAc-span">Tocando:<p class="server-list-musicAc-p" title="<%= element.musicAtual %>"><%= element.musicAtual %></p></span>
+                                                                <span class="server-list-musicAc-span">Tocando:<p class="server-list-musicAc-p" title="<%= element.musicaAtual == null || element.musicaAtual == undefined ? '' : element.musicaAtual.musica  %>"><%= element.musicaAtual == null || element.musicaAtual == undefined ? '' : element.musicaAtual.musica %></p></span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -88,15 +88,16 @@
                                         <input class="server-list-buttons-class" id="direct-button" type="button" value="Conexão Direta">
                                         <input class="server-list-buttons-class" id="create-room-button" type="button" value="Criar Sala">
                                         <input class="server-list-buttons-class" id="random-room-button" type="button" value="Aleatório">
+                                        <input class="server-list-buttons-class" id="refresh-button" type="button" value="Atualizar Lista">
                                     </div>
                                 </div>
                                 
                             </div>
-                            <div id="server-list-right-containner">
-                                <div id="server-list-right-content">
+                            <div id="server-list-right-containner" >
+                                <!-- <div id="server-list-right-content">
                                     <div id="server-list-right-top-infos">
                                         <div id="room-right-pic">
-                                            <img id="room-right-pic-img" src="../public/img/exempleImg.jpg" >
+                                            <img id="room-right-pic-img" src="https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png" >
                                         </div>
                                         <div id="room-right-title">
                                             <h1 id="room-right-title-h1">Servidor Teste</h1>
@@ -106,7 +107,7 @@
                                     <div id="server-list-right-music-infos">
                                         <h1 id="room-right-tocando">Tocando</h1>
                                         <div id="room-right-music-pic">
-                                            <img id="room-right-music-pic-img" src="../public/img/exempleImg.jpg">
+                                            <img id="room-right-music-pic-img" src="https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg">
                                         </div>
                                         <div id="room-right-music-name">
                                             <h1 id="room-right-music-name-h1">Nome da Musica</h1>
@@ -135,7 +136,7 @@
                                             <svg id="server-list-right-button-svg" viewBox="-27 0 448 448" xmlns="http://www.w3.org/2000/svg"><path d="m341.332031 448h-224v-138.667969h21.335938v117.335938h202.664062c17.601563 0 32-14.402344 32-32v-341.335938c0-17.597656-14.398437-32-32-32h-202.664062v117.335938h-21.335938v-138.667969h224c29.46875 0 53.335938 23.867188 53.335938 53.332031v341.335938c0 29.464843-23.867188 53.332031-53.335938 53.332031zm0 0"></path><path d="m203.867188 312.535156-15.066407-15.070312 73.464844-73.464844-73.464844-73.464844 15.066407-15.070312 88.53125 88.535156zm0 0"></path><path d="m0 213.332031h277.332031v21.335938h-277.332031zm0 0"></path></svg>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>

@@ -1,0 +1,53 @@
+<link rel="stylesheet" href="../public/css/createRoom.css">
+<%- include('./reusable/head.ejs') %>
+<div id="create-room-containner">
+    <form id="create-room-content">
+        <div id="create-room-top-Options">
+            <div id="create-room-top-Options-cacel-button">
+                <button style="background-color: rgb(128, 27, 27);" class="create-room-top-Options-buttons">Cancelar</button>
+            </div>
+            <div id="create-room-top-Options-title">
+                <span id="create-room-top-Options-title-span">Criar Sala</span>
+            </div>
+            <div id="create-room-top-Options-create-button">
+                <input type="submit" style="background-color: #27861f;" value="Criar" class="create-room-top-Options-buttons">
+            </div>
+        </div>
+        <div id="create-room-mid-content">
+            <div id="create-room-image">
+                <h1 id="create-room-image-title">
+                    Imagem da Sala
+                </h1>
+                <div id="create-room-image-content">
+                    <img id="create-room-image-preview" src="" alt="">
+                    <input type="file" name="roomImage" id="create-room-image-input">
+                </div>
+            </div>
+            <div id="create-room-inputs">
+                <div id="create-room-name-content">
+                    <span class="create-room-inputs-title" id="create-room-name-title">Nome da Sala</span>
+                    <input class="create-room-inputs-basic" type="text" name="roomName" id="create-room-name-input">
+                </div>
+                <div id="create-room-style-music-content">
+                    <span class="create-room-inputs-title"  id="create-room-style-music-title">Gêneros Musicais</span>
+                    <input class="create-room-inputs-basic" type="text" name="roomStyles" id="create-room-style-music-input">
+                </div>
+                <div id="create-room-duble-inputs-content">
+                    <div id="create-room-pass-content">
+                        <span class="create-room-inputs-title" id="create-room-pass-title">Senha</span>
+                        <input class="create-room-inputs-basic" type="text" name="roomPass" id="create-room-pass-input">
+                    </div>
+                    <div id="create-room-max-pessoas-content">
+                        <span class="create-room-inputs-title"  id="create-room-max-pessoas-title">Máximo de Pessoas</span>
+                        <input class="create-room-inputs-basic" type="text" name="roomMax" id="create-room-max-pessoas-input">
+                    </div>
+                </div>
+            </div>
+            <div id="create-room-inv-code">
+    
+            </div>
+        </div>
+    </form>
+</div>
+<%- include('./reusable/script.ejs') %>
+<script src="../public/js/createRoom.js"></script>

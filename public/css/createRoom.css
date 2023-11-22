@@ -1,0 +1,50 @@
+#create-room-containner{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 2em;
+    background-color: var(--secundary-color);
+    #create-room-content{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        #create-room-top-Options{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            #create-room-top-Options-title{
+                display: flex;
+                width: 100%;
+                justify-content: center;
+                align-items: center;
+                #create-room-top-Options-title-span{
+                    color: var(--color-text-primary);
+                    font-size: 3em;
+                    font-family: 'inter';
+                    font-weight: bold;
+                }
+            }
+            .create-room-top-Options-buttons{
+                font-size: 1.3em;
+                color: var(--color-text-primary);
+                font-family: 'ubunto',sans-serif;
+                width: 8em;
+                height: 3em;
+                border-radius: 10px;
+                border: none;
+                cursor: pointer;
+                transition: 0.7s;
+                &:hover{
+                    opacity: 0.8;
+                    transform: scale(1.1);
+                    transition: 0.7s;
+                }
+            }
+        }
+        #create-room-mid-content{
+            
+        }
+    }
+}

@@ -58,8 +58,10 @@ async function reqRooms(data) {
         success: function(response) {
             if (response.success == true) {
                 let room = response.room
-                let isMusic = room.musicaAtual || room.musicaAtual == null ? false : true
-            
+                let banda = room.musicaAtual == null || room.musicaAtual == undefined ? 'Nome Da Banda' : room.musicaAtual.banda 
+                let musica = room.musicaAtual == null || room.musicaAtual == undefined ? 'Nome Da Musica' : room.musicaAtual.musica
+                document.getElementById('server-list-right-containner').style.width = '20%'
+                document.getElementById('server-list-left-content').style.width ='100%'
                 document.getElementById('server-list-right-containner').innerHTML = `
                         <div id="server-list-right-content">
                         <div id="server-list-right-top-infos">
@@ -74,13 +76,13 @@ async function reqRooms(data) {
                         <div id="server-list-right-music-infos">
                             <h1 id="room-right-tocando">Tocando</h1>
                             <div id="room-right-music-pic">
-                                <img id="room-right-music-pic-img" src="${isMusic == true ? room.musicaAtual.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg'}">
+                                <img id="room-right-music-pic-img" src="${room.musicaAtual == null || room.musicaAtual == undefined ? 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg' : room.musicaAtual.thumbnail }">
                             </div>
                             <div id="room-right-music-name">
-                                <h1 id="room-right-music-name-h1">${isMusic == true ? room.musicaAtual.musica : 'Nome Da Musica' }</h1>
+                                <h1 id="room-right-music-name-h1">${musica}</h1>
                             </div>
                             <div id="room-right-music-banda">
-                                <p id="room-right-music-banda-p">${isMusic == true ? room.musicaAtual.banda : "Nome Da Banda"}</p>
+                                <p id="room-right-music-banda-p">${banda}</p>
                             </div>
                         </div>
                         <div class="linha"></div>
@@ -150,3 +152,72 @@ document.getElementById('close-popup-button-direct').addEventListener('click',()
 document.getElementById('direct-button').addEventListener('click',()=>{
     document.getElementById('direct-connection-popup-containner').show('flex')
 })
+
+document.getElementById('refresh-button').addEventListener('click',()=>{
+    refreshRooms()
+})
+
+function refreshRooms() {
+    $.ajax({
+        traditional: true,
+        url: '/getRoom',
+        type: 'POST',
+        success: function(response) {
+            if (response.success == true) {
+                document.getElementById('server-list-row').innerHTML = ''
+                 
+                response.data.forEach((element,index)=>{
+                    let musicaAtual = element.musicaAtual.musica == undefined || element.musicaAtual.musica == null ? '' : element.musicaAtual.musica
+                    document.getElementById('server-list-row').innerHTML += `
+                    <div class="server-list-col" data-index="${index}" data-roomId="${ element.roomId }">
+                        <div class="server-list-col-img-text-containner">
+                            <div class="server-list-img">
+                                <img src="${element.roomPic} ">
+                            </div>
+                            <div class="server-list-texts">
+                                <div class="server-list-name">
+                                    <span class="server-list-name-span">${element.roomName}</span>
+                                </div>
+                                <div class="server-list-musicAc">
+                                    <span class="server-list-musicAc-span">Tocando:<p class="server-list-musicAc-p" title="${musicaAtual}">${musicaAtual}</p></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="server-list-style-containner" title="${element.estilos}">
+                            <h1 class="server-list-style-title">Estilo Musical</h1>
+                            <p class="server-list-style-p">${element.estilos}</p>
+                        </div>
+                        <div class="server-list-status">
+                            <div class="number-people-containner">
+                                <p class="number-people-p">${element.pessoas.length} / ${element.maxpessoas}</p>
+                            </div>
+                            <div class="islocked-containner">
+                                <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 65.469 65.469" style="enable-background:new 0 0 65.469 65.469;" xml:space="preserve"><g><path d="M50.504,23.929h-0.603v-6.762C49.902,7.701,42.202,0,32.736,0S15.569,7.701,15.569,17.167v6.762h-0.604 c-5.401,0-9.796,4.395-9.796,9.797v21.946c0,5.402,4.395,9.797,9.796,9.797h35.54c5.401,0,9.796-4.395,9.796-9.797V33.726 C60.3,28.324,55.905,23.929,50.504,23.929z M21.569,17.167C21.569,11.01,26.577,6,32.736,6c6.157,0,11.166,5.009,11.166,11.167 v6.762H21.569V17.167z M54.3,55.673c0,2.094-1.703,3.797-3.796,3.797H14.965c-2.093,0-3.796-1.703-3.796-3.797V33.726 c0-2.094,1.703-3.797,3.796-3.797h35.54c2.093,0,3.796,1.703,3.796,3.797L54.3,55.673L54.3,55.673z"></path><path d="M32.734,37.163c-3.321,0-6.014,2.692-6.014,6.014c0,2.227,1.214,4.167,3.014,5.207v6.686h6v-6.686 c1.8-1.04,3.014-2.98,3.014-5.207C38.748,39.855,36.055,37.163,32.734,37.163z"></path></g></svg>
+                            </div>
+                        </div>
+                        <div class="enter-room" data-roomId="${element.roomId}">
+                            <svg viewBox="-27 0 448 448" xmlns="http://www.w3.org/2000/svg"><path d="m341.332031 448h-224v-138.667969h21.335938v117.335938h202.664062c17.601563 0 32-14.402344 32-32v-341.335938c0-17.597656-14.398437-32-32-32h-202.664062v117.335938h-21.335938v-138.667969h224c29.46875 0 53.335938 23.867188 53.335938 53.332031v341.335938c0 29.464843-23.867188 53.332031-53.335938 53.332031zm0 0"></path><path d="m203.867188 312.535156-15.066407-15.070312 73.464844-73.464844-73.464844-73.464844 15.066407-15.070312 88.53125 88.535156zm0 0"></path><path d="m0 213.332031h277.332031v21.335938h-277.332031zm0 0"></path></svg>
+                        </div>
+                    </div>
+                    <div class="linha"></div>
+                `
+                })
+                document.querySelectorAll('.server-list-col').forEach((element,index)=>{
+                    element.addEventListener('click',()=>{
+                        let roomId = element.getAttribute('data-roomId')
+                        reqRooms(roomId)
+                        
+                    })
+                })
+                document.querySelectorAll('.enter-room').forEach((element,index)=>{
+                    element.addEventListener('click',()=>{
+                        joinRoom({roomID:element.getAttribute('data-roomId'), uid:uid})
+                    })
+                })
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+        }
+    })
+}
