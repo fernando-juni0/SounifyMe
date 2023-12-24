@@ -30,12 +30,14 @@ html,body,#main-containner,#containner,#body-containner{
     justify-content: center;
     align-items: center;
     #server-list-content{
+        overflow-x: hidden;
         display: flex;
         width: 80%;
         height: 80%;
         background-color: var(--primary-color-opacity);
         border-radius: 10px;
         #server-list-left-content{
+            transition: 0.8s;
             width: 80%;
             height: 100%;
             #server-list-left-search-containner{
@@ -107,6 +109,10 @@ html,body,#main-containner,#containner,#body-containner{
                     }
                     #random-room-button{
                         background-color: #F39C12;
+                        margin-right: 1em;
+                    }
+                    #refresh-button{
+                        background-color: #209615;
                     }
                 }
             }
@@ -144,6 +150,7 @@ html,body,#main-containner,#containner,#body-containner{
                             .server-list-col-img-text-containner{
                                 display: flex;
                                 margin-left: 1em;
+                                width: 20%;
                                 .server-list-img {
                                     height: 4em;
                                 }
@@ -151,6 +158,9 @@ html,body,#main-containner,#containner,#body-containner{
                                     width: 4em;
                                     height: 4em;
                                     border-radius: 20em;
+                                    background-color: var(--border-color2);
+                            
+                                    
                                 }
                                 .server-list-texts{
                                     display: flex;
@@ -161,7 +171,10 @@ html,body,#main-containner,#containner,#body-containner{
                                     justify-content: center;
                                     .server-list-name{
                                         margin-bottom: 0.2em;
-                                      .server-list-name-span{
+                                      .server-list-name-h1{
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis; 
                                         color: var(--color-text-primary);
                                         font: 600 1.4em 'inter',sans-serif;
                                       }  
@@ -236,8 +249,10 @@ html,body,#main-containner,#containner,#body-containner{
         }
 
         #server-list-right-containner{
-            width: 20%;
+            
             height: 100%;
+            position: relative;
+            left: 0%;
             #server-list-right-content{
                 width: 100%;
                 height: 100%;
@@ -246,6 +261,9 @@ html,body,#main-containner,#containner,#body-containner{
                 background-color: var(--primary-lite-color);
                 display: flex;
                 flex-direction: column;
+                left: 0%;
+                position: relative;
+                animation: roomAnim 0.8s;
                 #server-list-right-top-infos{
                     display: flex;
                     flex-direction: column;
@@ -383,6 +401,89 @@ html,body,#main-containner,#containner,#body-containner{
                 }
             }
         }
+    }
+}
+
+#direct-connection-popup-containner{
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    #direct-connection-popup-close{
+        cursor: pointer;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0,0.4);
+        z-index: 1;
+    }
+    #direct-connection-popup-content{
+        z-index: 99999;
+        display: flex;
+        width: 22em;
+        border-radius: 10px;
+        height: 16em;
+        padding: 1em;
+        background-color: var(--secundary-color);
+        flex-direction: column;
+        align-items: center;
+        /* justify-content: ; */
+        #direct-connection-top{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: end;
+            margin-bottom: 1em;
+            #direct-connection-h1{
+                width: 100%;
+                color: var(--color-text-primary);
+                font: 600 1.2em 'inter',sans-serif;
+            }
+            #close-popup-button-direct{
+                width: 3em;
+                height: 3em;
+                cursor: pointer;
+            }
+        }
+        #direct-connection-input{
+            border-radius: 10px;
+            border: none;
+            width: 70%;
+            padding: 1em;
+        }
+        #direct-connection-button{
+            text-align: center;
+            margin-top: 1em;
+            display: flex;
+            justify-content: center;
+            border: 1px solid var(--primary-color);
+            max-width: 10em;
+            max-height: 6em;
+            min-width: 6em;
+            min-height: 1em; 
+            border-radius: 20em;
+            background-color: rgb(4, 177, 4);
+            display: flex;
+            padding: 1em;
+            cursor: pointer;
+            color: var(--color-text-primary);
+            font: 600 1em 'inter',sans-serif;
+        }
+    }
+}
+
+#server-list,#server-list-row-containner,#server-list-row{
+    transition: 0.8s;
+}
+
+@keyframes roomAnim {
+    0%{
+        left: 100%;
     }
 }
 

@@ -15,11 +15,15 @@ const { getAuth,fetchSignInMethodsForEmail } = require('firebase/auth')
 const cloudinary = require('cloudinary')
 var ytdl = require('ytdl-core');
 const cors = require('cors');
-// let servers = require('./config/originals-servers')
 const app = express();
 
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const https = require(process.env.LOCAL == 'localhost' ? 'http' : 'https').createServer(app);
+const io = require('socket.io')(https);
+
+
+
+const socketManager = require('./socket.io/index-socket');
+const { url } = require('inspector');
 
 //TODO------------Configs--------------
 
@@ -48,8 +52,11 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs');
 
+
 const auth = getAuth();
 
+
+//TODO Multer
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -68,6 +75,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 
+//TODO Cloudinary
 
 cloudinary.config({ 
     cloud_name: 'dgcnfudya', 
@@ -77,413 +85,25 @@ cloudinary.config({
 
 
 
+//TODO SOCKET
+
+socketManager(io)
 
 
-//TODO----------------SOCKET------------------
-io.on('connection', async(socket) => {
+//TODO-----------Arquivos TEST-----------------
 
-    //TODO------Sockets---------
-    
-
-    socket.on('initVote',async(data)=>{
-        io.to(data.roomID).emit('reqVote', data)
-        
-    })
-    socket.on('resVote',async(data)=>{
-        if (data.numberVotes > data.numberRecuses) {
-            functions.percentualNumber(data.numberVotes,data.roomUserNumber,80).then((res)=>{
-                if (res == true) {
-                    socket.to(data.roomID).emit('resultVote',data, true);
-                }else{
-                    socket.to(data.roomID).emit('resultVote',data, false);
-                }
-            })
-        }else{
-            socket.to(data.roomID).emit('resultVote',data,false);
-        }
-        
-        
-    })
-
-
-    socket.on("reqTimeMusic",async(user,room)=>{
-        io.to(room).emit('TimeMusicPost', user,room)
-    })
-
-    socket.on('resTimeMusic',async(data)=>{
-        //TODO(UPDATE)  adicionar o script de frequencia que esta no functions ,
-        io.to(data.room).emit('TimeMusicGet',data)
-    })
-
-    socket.on("indexMusic",async(musicIndex,room)=>{
-        io.to(room).emit('resultCommandsMusic', musicIndex,room)
-        await db.update('Conections',room,{
-            positionQueue:musicIndex
-        })
-    })
-
-    socket.on('getCommand', async(data)=>{
-        switch (data.command) {
-            case '/play':
-                var roomData = await db.findOne({colecao:'Conections',doc:data.room})
-                var roomQueue = roomData.queue
-                var roomQueueCount = roomQueue.length + 1
-                async function validLinkType(data) {
-                     switch (data.type) {
-                        case 'youtube':
-                            if (data.link.includes('/playlist')) {
-                                let playlistDataYt = await functions.getPlaylistYoutube(data.link);
-                                const promises = [];
-                                
-                                for (const [index, element] of playlistDataYt.entries()) {
-                                    let matchLink = element.match(/[?&]v=([^&]+)/);
-                                    let playlistID =  matchLink ? matchLink[1] : null;
-                                    if (playlistID) {
-                                        let linkData = await functions.getLinkYtData(element)
-                                        linkData.index = roomQueueCount + index
-                                        promises.push(linkData);
-                                    } else {
-                                        
-                                        console.error('ID de playlist inválido:', element);
-                                        return {erro:"ID de playlist inválido"}
-                                    }
-                                }
-
-                                await Promise.all(promises);
-                                return {
-                                    type:'youtubePlaylist',
-                                    playlistDataRes : promises
-                                }
-                            }else{
-                                let linkData = await functions.getLinkYtData(data.link)
-                                return linkData
-                            } 
-                            break;
-                        case 'songName':
-                            return await functions.searchTrackLink(data.link).then((res)=>{
-                                if (res == 'erro') {
-                                    return {erro:"Não foi possivel encontrar a musica"}
-                                }
-                                return res
-                            }).catch(err=>{
-                                console.log(err);
-                                return {erro:err}
-                            })
-                            break;
-                        case 'spotify':
-                            if (data.link.includes('/playlist/')) {
-                                return alert('Atualmente não aceitamos playlists do spotify')
-                            }else{
-                                const response2 = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(data.link)}`);
-                                const data2 = await response2.json();
-                                
-                                const infoRES = await ytdl.getInfo(data2.linksByPlatform.youtube.url);
-                                const linkRES = ytdl.chooseFormat(infoRES.formats, { filter: 'audioonly' }).url
-                                const resInfos = data2.entitiesByUniqueId[data2.entityUniqueId]
-                                return {
-                                    thumbnail: resInfos.thumbnailUrl,
-                                    musica: resInfos.title,
-                                    banda: resInfos.artistName,
-                                    link: linkRES,
-                                };
-                            }
-                            break
-                        default:
-                            break;
-                    }
-                }
-            
-                
-               
-
-                let verifyLinkResult = await validLinkType(data)
-                if (verifyLinkResult.erro) {
-                    switch (verifyLinkResult.erro) {
-                        case 'Não foi possivel encontrar a musica':
-                            io.to(data.room).emit('Reqerror', {erroType:'playMusic',errorText:verifyLinkResult.erro});
-                            break;
-                    
-                        default:
-                            break;
-                    
-                    }
-                    
-                    return
-                }
-
-                if (verifyLinkResult.type == 'youtubePlaylist') {
-                    var roomDataPl = await db.findOne({colecao:'Conections',doc:data.room})
-                    let roomModifyAddPlaylist = roomDataPl.queue
-                    var roomQueueCount = roomDataPl.queue.length + 1
-                    await verifyLinkResult.playlistDataRes.forEach(async(element,index)=>{
-                        let elementResolve = await Promise.resolve(element)
-                        if (roomModifyAddPlaylist.length == 0 && index == 0) {
-                            io.to(data.room).emit('getMuiscPlaylist', {user:data.user,typeResult:'play', date:data.date,queueIndex:roomQueueCount, linkInfos:elementResolve});
-                            db.update('Conections',data.room,{
-                                musicaAtual:{
-                                    link:elementResolve.link,
-                                    thumbnail: elementResolve.thumbnail ? elementResolve.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
-                                    banda:elementResolve.banda,
-                                    musica:elementResolve.musica
-                                }
-                            })
-                        }else{
-                            io.to(data.room).emit('getMuiscPlaylist', {user:data.user,typeResult:'queue', date:data.date,queueIndex:roomQueueCount, linkInfos:elementResolve});
-                        }
-                        await roomModifyAddPlaylist.push(elementResolve)
-                    })
-                    let mensageObj = await roomDataPl.mensages
-                    await mensageObj.push({
-                        userUID:data.user.uid,
-                        mensageDate: data.date,
-                        userName: data.user.displayName,
-                        userPic: data.user.profilePic,
-                        command:data.command,
-                        type:'playlistYT',
-                    })
-                    db.update('Conections',data.room,{
-                        queue:roomModifyAddPlaylist,
-                        mensages:mensageObj
-                    })
-
-                    return
-                }
-
-                if (verifyLinkResult.type == 'spotifyPlaylist') {
-                    console.log(verifyLinkResult);
-                    // io.to(data.room).emit('test',verifyLinkResult.playlistData );
-                    return
-                }
-                let modelAddMusic = {
-                    link:verifyLinkResult.link,
-                    thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
-                    banda:verifyLinkResult.banda,
-                    musica:verifyLinkResult.musica
-                }
-
-                
-                
-                if (roomQueue.length == 0) {
-                    io.to(data.room).emit('receiveCommand', {typeResult:'play',command:data.command,user:data.user, date:data.date, queueIndex:roomQueueCount,linkInfos:modelAddMusic});
-    
-                    await db.update('Conections',data.room,{
-                        musicaAtual:modelAddMusic
-                    })
-                }else{
-                    io.to(data.room).emit('receiveCommand', {typeResult:'queue',command:data.command,user:data.user, date:data.date,queueIndex:roomQueueCount, linkInfos:modelAddMusic});
-                }
-                let modelAddMusicQueue = modelAddMusic
-                modelAddMusicQueue.index = roomQueueCount
-                await roomQueue.push(modelAddMusicQueue)
-                await db.update('Conections',data.room,{
-                    queue:roomQueue
-                })
-                
-                
-                
-                let mensageObj = await roomData.mensages
-                await mensageObj.push({
-                    userUID:data.user.uid,
-                    mensageDate: data.date,
-                    userName: data.user.displayName,
-                    userPic: data.user.profilePic,
-                    command:data.command,
-                    resCommand:{
-                        link:verifyLinkResult.link,
-                        thumbnail: verifyLinkResult.thumbnail ? verifyLinkResult.thumbnail : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg',
-                        banda:verifyLinkResult.banda,
-                        musica:verifyLinkResult.musica
-                    }
-                })
-                await db.update('Conections',data.room,{
-                    mensages:mensageObj
-                })
-                break;
-            case '/clear':
-                switch (data.action) {
-                    case 'apagar o chat':
-                        io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,});
-                        await db.update('Conections',data.roomID,{
-                            mensages:[]
-                        })
-                        break;
-                    case 'parar a musica atual':
-                        if (data.other.link) {
-                            const roomDataClear = await db.findOne({colecao:'Conections',doc:data.roomID})
-                            let roomQueueClear = roomDataClear.queue
-                            let newArrayQueue = []
-                            let indexArray = 0
-                            await roomQueueClear.forEach((element,index)=>{
-                                indexArray ++ 
-                                if (element.link == data.other.link) {
-                                    indexArray -- 
-                                }else{
-                                    newArrayQueue.push({
-                                        link:element.link,
-                                        thumbnail: element.thumbnail,
-                                        banda:element.banda,
-                                        musica:element.musica,
-                                        index: indexArray
-                                    })
-                                }
-                            })
-                            await db.update('Conections',data.roomID,{
-                                musicaAtual:{},
-                                queue:newArrayQueue
-                            })
-                            io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
-                        }else{
-                            io.to(data.roomID).emit('Reqerror', {erroType:'empty',errorText:'Não tem nenhuma musica em reprodução para ser apagada!'});
-                        }
-                        
-                        break;
-                    case 'apagar a fila de reprodução':
-                        io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,});
-                        await db.update('Conections',data.roomID,{
-                            musicaAtual:{},
-                            queue:[]
-                        })
-                        break
-                    
-                }
-                break
-            case '/indexChange':
-                const roomDataChange = await db.findOne({colecao:'Conections',doc:data.roomID})
-                let roomDataQueue = roomDataChange.queue
-                if (data.other > roomDataQueue.length || data.other <= 0) {
-                    return
-                }
-                io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
-                await db.update('Conections',data.roomID,{
-                    positionQueue:data.other,
-                    musicaAtual:roomDataQueue[data.other - 1]
-                })
-                break
-            case '/kick':
-                const roomDataKick = await db.findOne({colecao:'Conections',doc:data.roomID})
-                const roomPessoas = roomDataKick.pessoas
-                const index = await roomPessoas.indexOf(data.other);
-                if (index !== -1) {
-                    await roomPessoas.splice(index, 1);
-                }
-                
-                await db.update('Conections',data.roomID,{
-                    pessoas:roomPessoas
-                })
-
-                io.to(data.roomID).emit('receiveCommand', {command:data.command, action:data.action,other:data.other});
-                break
-        }
-    })
-
-    socket.on('sendMessage', async(data) => {
-        let roomData = await db.findOne({colecao:'Conections',doc:data.room})
-        let mensageObj = await roomData.mensages
-        io.to(data.room).emit('receiveMessage', {mensage:data.mensage,user:data.user,date:data.date});
-        await mensageObj.push({
-            userUID:data.user.uid,
-            mensageDate: data.date,
-            userName: data.user.displayName,
-            userPic: data.user.profilePic,
-            mensage: data.mensage
-        })
-        await db.update('Conections',data.room,{
-            mensages:mensageObj
-        })
-        
-    });
-    
-    socket.on('joinRoom',async (data) => {
-        let myUser = await db.findOne({colecao:'users',doc:data.uid})
-        var room = await db.findOne({colecao:"Conections",doc:data.roomID})
-
-        var pessoas = room.pessoas
-        socket.join(data.roomID);
-        if (pessoas.includes(myUser.uid)) {
-            return
-        }
-
-        socket.user = myUser
-        socket.room = data.roomID
-        await db.update('users',data.uid,{
-            joinroom: data.roomID,
-        })
-        await pessoas.push(data.uid)
-        await db.update('Conections',data.roomID,{
-            pessoas:pessoas
-        })
-       
-        socket.broadcast.emit('join_user',myUser.uid);
-
-        socket.on('disconnect', async () => {
-            if (pessoas.includes(data.uid)) {
-                socket.broadcast.emit('isMyUser',data.uid)
-            }
-    
-            await db.update('users',data.uid,{
-                joinroom:null
-            })
-            let removePessoa = pessoas
-            const index = await removePessoa.indexOf(data.uid);
-            if (index !== -1) {
-                await removePessoa.splice(index, 1);
-            }
-            await db.update('Conections',data.roomID,{
-                pessoas: await removePessoa
-            })
-            socket.broadcast.emit('leave_user',data.uid);
-            socket.leave(data.roomID)
-        });
-    });
-    socket.on('leaveRoom', async(data) => {
-        var room = await db.findOne({colecao:"Conections",doc:data.roomID})
-        
-        var pessoas = room.pessoas
-
-        if (pessoas.includes(data.uid)) {
-            socket.broadcast.emit('isMyUser',data.uid)
-        }
-
-        await db.update('users',data.uid,{
-            joinroom:null
-        })
-        let removePessoa = pessoas
-        const index = await removePessoa.indexOf(data.uid);
-        if (index !== -1) {
-            await removePessoa.splice(index, 1);
-        }
-        await db.update('Conections',data.roomID,{
-            pessoas: await removePessoa
-        })
-        socket.broadcast.emit('leave_user',data.uid);
-        socket.leave(data.roomID)
-    });
-    socket.on('disconnect',async()=>{
-        if (socket.user) {
-            var room = await db.findOne({colecao:"Conections",doc:socket.room})
-            socket.leave(socket.room)
-            var pessoas = room.pessoas
-            
-            if (pessoas.includes(socket.user.uid)) {
-                socket.broadcast.emit('isMyUser',socket.user.uid)
-            }
-
-            await db.update('users',socket.user.uid,{
-                joinroom:null
-            })
-            let removePessoa = pessoas
-            const index = await removePessoa.indexOf(socket.user.uid);
-            if (index !== -1) {
-                await removePessoa.splice(index, 1);
-            }
-            
-            await db.update('Conections',socket.room,{
-                pessoas: await removePessoa
-            })
-            socket.broadcast.emit('leave_user',socket.user.uid);
-        }
-    })
-});
+const functionsStatus = require('./functions').status
+const socketStatus = require('./socket.io/index-socket').status
+const authenticStatus = require('./Firebase/authentication').status
+const dbStatus = require('./Firebase/db').status
+const modelsStatus = require('./Firebase/models').status
+console.table({
+    Functions: functionsStatus,
+    Socket:socketStatus,
+    Authentication:authenticStatus,
+    DB:dbStatus,
+    Models:modelsStatus
+})
 
 
 
@@ -507,13 +127,17 @@ app.post('/getRoom/:roomID',async(req,res)=>{
     res.status(200).json(responseData);
 })
 
+app.post('/views/createRoom',(req,res)=>{
+    let file = fs.readFileSync('./views/createRoom.ejs')
+    res.status(200).send(file)
+})
+
 //TODO-----------GET CONFIGS-----------------
 
 
 
 
 //TODO-----------------GET--------------------
-
 
 
 //TODO PAGES
@@ -568,7 +192,6 @@ app.get('/room/:roomid',functions.isAuthenticated,async(req,res)=>{
     if (req.session.uid) {
         let room = await db.findOne({colecao:'Conections',doc:req.params.roomid})
         let user = await db.findOne({colecao:"users",doc:req.session.uid})
-        
         res.render('room',{myUser:user,room:room})
     } else {
         res.redirect('/login')
@@ -580,7 +203,7 @@ app.get('/conection',functions.isAuthenticated,async(req,res)=>{
         await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
             const user = await functions.userModel(result,functions.removeArrayEmpty)
             let rooms = await db.findAll({colecao:'Conections'})
-            res.render('conection',{user:user,rooms:rooms})
+            res.render('conection',{user:user,rooms:rooms,createRoom:req.query.createRoom })
         })
     } else {
         res.redirect('/login')
@@ -627,7 +250,8 @@ app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
                     playlist: playlist,
                     isMyProfile: isMyProfile,
                     isFolow: isFolow == true ? true : false,
-                    userBockeds: result1.userBockeds
+                    userBockeds: result1.userBockeds,
+                    friends:result1.friends ? result1.friends : []
                 }
             })
             
@@ -718,8 +342,10 @@ app.post("/folow/:uid", async(req,res)=>{
     await db.findOne({colecao:'users',doc:req.params.uid}).then( async(result1)=>{
         if (result1.uid) {
             responseData.success = true
+            responseData.seguidores = result1.folowInfo.seguidores.length + 1
         }else{
             responseData.success = false
+            responseData.seguidores = null
         }
         let newFolowMe = result1.folowInfo.seguidores
         newFolowMe.push(req.session.uid)
@@ -742,7 +368,6 @@ app.post("/folow/:uid", async(req,res)=>{
         
 
     }) 
-    
     res.status(200).json(responseData);
 })
 
@@ -751,8 +376,10 @@ app.post("/unfolow/:uid", async(req,res)=>{
     await db.findOne({colecao:'users',doc:req.params.uid}).then( async(result1)=>{
         if (result1.uid) {
             responseData.success = true
+            responseData.seguidores = result1.folowInfo.seguidores.length - 1
         }else{
             responseData.success = false
+            responseData.seguidores = null
         }
         let newFolowMe = result1.folowInfo.seguidores
         let index = newFolowMe.indexOf(req.params.uid);
@@ -777,7 +404,6 @@ app.post("/unfolow/:uid", async(req,res)=>{
         }) 
         
     }) 
-    
     res.status(200).json(responseData);
 })
 
@@ -985,38 +611,313 @@ app.post('/createPlaylist/:uid', async(req,res)=>{
 })
 
 
+
 app.post('/findconnection',async(req,res)=>{
     var responseData = {}
-
-    let room = await db.findOne({colecao:'Conections',doc:req.body.roomId})
-    responseData.room = room
-    responseData.success = true
-    res.status(200).json(responseData);
-})
-
-
-
-app.post('/createRoom',async(req,res)=>{
-    var responseData = {}
-    const roomId = require('crypto').randomBytes(11).toString('hex');
-    const roomInvateCode = Math.random().toString().slice(2, 8);
-    let model = {
-        roomId:roomId,
-        roomInvateCode:roomInvateCode,
-        islocked: req.islocked,
-        pass: req.pass,
-        maxpessoas: req.maxpessoas,
-        estilos: req.estilos,
-        roomName: req.roomName,
-        roomPic: req.roomPic
+    if (req.body.roomId == 'random') {
+        let AllRooms = await db.findAll({colecao:'Conections'})
+        const randomIndex = Math.floor(Math.random() * AllRooms.length);
+        const randomDocument = await AllRooms[randomIndex]
+        if (randomDocument) {
+            responseData.room = randomDocument
+            responseData.success = true 
+        }else{
+            responseData.room = null
+            responseData.success = false 
+        }
+        
+    }else{
+        let room = await db.findOne({colecao:'Conections',doc:req.body.roomId})
+        if (room) {
+            responseData.room = room
+            responseData.success = true 
+        }else{
+            responseData.room = null
+            responseData.success = false 
+        }
     }
-    await functions.createServerDB(model)
-    responseData.success = true
-    responseData.data = model
     res.status(200).json(responseData);
 })
 
+app.post('/findRoomInv',async(req,res)=>{
+    var responseData = {}
+    let room = await db.findOne({colecao:'Conections',where:['roomInvateCode',"==",parseInt(req.body.codeInv)]})
+    if (room) {
 
+        responseData.success = true
+        responseData.roomID = room.roomId
+    }else{
+        responseData.success = false
+        responseData.roomID = null
+    }
+    res.status(200).json(responseData);
+})
+
+app.post('/createRoom', upload.single('roomPic'), async(req,res)=>{
+    async function numberGenerateID(){
+        const roomId = require('crypto').randomBytes(11).toString('hex');
+        return await db.findOne({ colecao:'Conections', where:['roomId',"==",roomId] }).then((err, resultado) => {
+            if (err) {
+                console.error("Erro ao verificar código no banco de dados:", err);
+                // Trate o erro de acordo com sua aplicação
+                // Chame a função novamente ou faça o que for necessário
+                numberGenerateID(); // Chama a função recursivamente em caso de erro
+            } else {
+                if (resultado) {
+                    // Se o código já existir, gere um novo código e repita o processo
+                    numberGenerateID(); // Chama a função novamente para gerar outro código
+                } else {
+                    return roomId
+                }
+            }
+        });
+    }
+    async function numberGenerateINV(){
+        const roomInvateCode = Math.random().toString().slice(2, 8);
+        return await db.findOne({ colecao:'Conections', where:['roomInvateCode',"==",roomInvateCode] }).then((err,resultado)=>{
+            
+            if (err) {
+                console.error("Erro ao verificar código no banco de dados:", err);
+                // Trate o erro de acordo com sua aplicação
+                // Chame a função novamente ou faça o que for necessário
+                numberGenerateINV(); // Chama a função recursivamente em caso de erro
+            } else {
+                if (resultado) {
+                    // Se o código já existir, gere um novo código e repita o processo
+                    numberGenerateINV(); // Chama a função novamente para gerar outro código
+                } else {
+                    return roomInvateCode
+                }
+            }
+            
+        })
+    }
+    const roomIdV = await numberGenerateID()
+    const roomInvateCodeV = await numberGenerateINV()
+    if (req.file) {
+        let fileContent = fs.readFileSync(req.file.path)
+        try{
+            const stream = await cloudinary.uploader.upload_stream(async(result) => {
+                if (result) {
+                    await functions.createServerDB({
+                        roomId:roomIdV,
+                        roomInvateCode:roomInvateCodeV,
+                        islocked: req.body.pass ? req.body.pass.trim().length == 0 ? false : true : false,
+                        pass: req.body.pass,
+                        maxpessoas: req.body.maxpessoas,
+                        estilos: req.body.estilos,
+                        roomName: req.body.roomName,
+                        roomPic: result.url
+                    })
+                    
+                    fs.unlink(req.file.path, function (err){
+                        if (err) throw err;
+                    })
+                    res.status(200).redirect('/room/'+ roomIdV)
+                   
+                }
+            }, { 
+                public_id: "sounifyme/" + roomIdV + "-profileImg",
+                transformation: {
+                    width: 500, 
+                    height: 500,
+                    crop: "fill"
+                } 
+            });
+            await stream.write(fileContent);
+            await stream.end();
+        }catch(err){
+            console.log(err);
+        }
+    }
+
+    
+    // 
+    
+})
+
+
+app.post('/createNot', async(req,res)=>{
+    
+    const userinvitador = req.body.userinvitador ? req.body.userinvitador : req.session.uid
+    const {type,userinvitado,date} = req.body
+   
+    switch (type) {
+        case 'inv-friend':
+            
+            let myData = await db.findOne({colecao:'users',doc:userinvitador})
+            let userinvData = await db.findOne({colecao:'users',doc:userinvitado})
+            if (myData.uid && userinvData.uid) {
+                const isInvited = await myData.invsPendente.some(objeto => Object.keys(objeto).some(chave => objeto[chave] === userinvitado))
+                
+                if (isInvited == true) {
+                    
+                    res.status(200).json({
+                        success:false,
+                        data:null
+                    });
+                }else{
+                    let invs = myData.invsPendente ? myData.invsPendente : []
+                    let invs2 = userinvData.invsPendente ? userinvData.invsPendente : []
+                    let model = {
+                        type:type,
+                        userinvitado: userinvitado,
+                        userinvitador: {
+                            displayName: myData.displayName,
+                            profilePic: myData.profilePic,
+                            uid: myData.uid
+                        },
+                        date:date
+                    }
+
+                    await invs.push(model)
+                    await invs2.push(model)
+    
+                    db.update('users',userinvitador,{
+                        invsPendente:invs
+                    })
+    
+                    db.update('users',userinvitado,{
+                        myNots:invs2
+                    })
+    
+    
+                    
+                    res.status(200).json({
+                        success:true,
+                        data:model
+                    });
+                    
+                }
+            }else{
+                res.status(200).json({
+                    success:false,
+                    data:null
+                });
+            }
+            
+            
+        
+            
+            break;
+    
+        default:
+            break;
+    }
+
+})
+
+
+app.post('/reqMyNots/:uid',async(req,res)=>{
+    let {myNots} = await db.findOne({colecao:'users',doc:req.params.uid})
+    res.status(200).json({
+        success: true,
+        data: myNots ? myNots : null
+    });
+})
+
+app.post('/notOptions',async(req,res)=>{
+    var responseData = {}
+    const {type,attribute,userInv,myUser} = req.body
+    let userinvitado = await db.findOne({colecao:'users',doc:userInv})
+    let userInvitador = await db.findOne({colecao:'users',doc:myUser})
+    switch (type) {
+        case 'inv-friend':
+            if (attribute == 'sim') {
+                let friends = userinvitado.friends ? userinvitado.friends : []
+                let friends2 = userInvitador.friends ? userInvitador.friends : []
+                let invsPendente = userinvitado.invsPendente
+                invsPendente = await invsPendente.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                let myNots = await userInvitador.myNots
+                myNots = await myNots.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                if (friends2.includes(userinvitado.uid) == false) {
+                    await friends2.push(userinvitado.uid)
+                }
+                if (friends.includes(userInvitador.uid) == false) {
+                    await friends.push(userInvitador.uid)
+                }
+                db.update('users',userinvitado.uid,{
+                    friends:friends,
+                    invsPendente: invsPendente
+                })
+                db.update('users',userInvitador.uid,{
+                    friends:friends2,
+                    myNots: myNots
+                })
+            }else{
+                let invsPendente2 = userinvitado.invsPendente
+                invsPendente2 = await invsPendente2.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                let myNots2 = await userInvitador.myNots
+                myNots2 = await myNots2.filter(objeto => objeto.userinvitador.uid !== userinvitado.uid);
+                db.update('users',userinvitado.uid,{
+                    invsPendente: invsPendente2
+                })
+                db.update('users',userInvitador.uid,{
+                    myNots: myNots2
+                })
+            }
+            break;
+    
+        default:
+            break;
+    }
+
+
+    res.status(200).json({
+        success:true
+    });
+})
+
+
+app.post('/desfFriend',async(req,res)=>{
+
+    let user1 = await db.findOne({colecao:'users', doc:req.session.uid})
+    let user1Friends = user1.friends
+    const index = await user1Friends.indexOf(req.body.profileUser);
+    if (index !== -1) {
+        await user1Friends.splice(index, 1);
+    }
+    db.update('users',user1.uid,{
+        friends:user1Friends,
+    })
+    let user2 = await db.findOne({colecao:'users',doc:req.body.profileUser})
+    let user2Friends = user2.friends
+    const index2 = await user2Friends.indexOf(req.session.uid);
+    if (index2 !== -1) {
+        await user2Friends.splice(index, 1);
+    }
+    db.update('users',user2.uid,{
+        friends:user2Friends,
+    })
+    
+    res.status(200).json({
+        success:true,
+    });        
+})
+
+
+app.post('/getRoom',async(req,res)=>{
+    let rooms = await db.findAll({colecao:'Conections'})
+    res.status(200).json({
+        success:true,
+        data:rooms
+    })
+})
+
+app.post('/verifyRoom', async(req,res)=>{
+    let roomName = await db.findOne({colecao:'Conections',where:['roomName','==',req.body.roomName]})
+    if (roomName) {
+        res.status(200).json({
+            success:false,
+            data:'O nome da sala ja esta em uso!'
+        })
+    }else{
+        res.status(200).json({
+            success:true,
+            data:null
+        })
+    }
+})
 
 
 
@@ -1036,12 +937,14 @@ app.get('/logout',(req,res)=>{
 
 
 
-
+app.get('/test',(req,res)=>{
+    res.render('test')
+})
 
 
 
 
 //TODO SERVER
-http.listen(configs.port,()=>{
+https.listen(configs.port,()=>{
     console.log(`Servidor rodando na porta ${configs.port}` );
 });

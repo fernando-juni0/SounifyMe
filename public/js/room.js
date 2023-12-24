@@ -1,6 +1,9 @@
 const socket = io();
 
-window.addEventListener("beforeunload", function (event) { });
+window.addEventListener("beforeunload", function (event) {
+    event.preventDefault();
+    event.returnValue = ''
+});
 
 var url = window.location.pathname;
 var partes = url.split("/");
@@ -102,13 +105,7 @@ function enviarMensagem() {
     var primeiraPalavra = palavras[0].toLowerCase();
     var segundaPalavra = palavras[1];
     document.getElementById("input-mensage").value = "";
-    const dataAtual = new Date();
-    const anoAtual = dataAtual.getFullYear().toString().substring(2);
-    const dataHoraFormatada = dataAtual
-        .toLocaleString("pt-BR")
-        .replace("20" + anoAtual, anoAtual)
-        .replace(/:\d{2}$/, "")
-        .replace(",", " ás");
+    const dataHoraFormatada = new Date().formatString(new Date())
     switch (primeiraPalavra) {
         case "/play":
             const content = inputContain.startsWith("/play ")

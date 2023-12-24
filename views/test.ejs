@@ -1,0 +1,74 @@
+<head>
+    <%- include('./reusable/head.ejs') %>
+    <title>SounifyMe - Conectar-Se</title>
+    <link rel="stylesheet" href="../public/css/conection.css">
+    <script src="../public/js/createRoom.js"></script>
+</head>
+<style>
+    #friends-popup-containner{
+        width: 24em;
+        height: 40em;
+        padding: 1em;
+        background-color: var(--primary-lite-color); 
+    }
+    
+    #friends-popup-miniprofile-containner{
+        display: flex;
+        align-items: center;
+        #friends-popup-miniprofile-image img{
+            width: 4em;
+            height: 4em;
+            margin-right: 1em;
+        }
+        #friends-popup-miniprofile-content-name{
+            display: flex;
+            flex-direction: column;
+            #friends-popup-miniprofile-name-h1{
+                color: var(--color-text-primary);
+                font: 600 2em 'inter',sans-serif;
+                cursor: pointer;
+            }
+            #friends-popup-miniprofile-status-span{
+                color: var(--color-text-primary);
+                font: 400 0.8em 'inter',sans-serif;
+                cursor: pointer;
+            }
+            #friends-popup-miniprofile-status-span[data-status='disponivel']{
+                color: rgb(31, 117, 216);
+            }
+        }
+    }
+    #friends-popup-mid-content{
+        
+    }
+</style>
+<div id="friends-popup-containner">
+    <div id="friends-popup-miniprofile">
+        <div id="friends-popup-miniprofile-containner">
+            <div id="friends-popup-miniprofile-image">
+                <img src="../public/img/Empty-IMG.jpg" >
+            </div>
+            <div id="friends-popup-miniprofile-content-name">
+                <div id="friends-popup-miniprofile-name">
+                    <h1 id="friends-popup-miniprofile-name-h1">FERNANDO</h1>
+                </div>
+                <div id="friends-popup-miniprofile-status">
+                    <span id="friends-popup-miniprofile-status-span" data-status="disponivel">Disponivel</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <div id="friends-popup-mid-content">
+        <div id="friends-popup-mid-title"></div>
+        <div id="friends-popup-mid-find"></div>
+        <div id="friends-popup-mid-add"></div>
+    </div>
+    <div id="friends-popup-friendSEC">
+        <div id="friends-popup-friendSEC-content">
+            <div id="friends-popup-friendSEC-online"></div>
+            <div id="friends-popup-friendSEC-offline"></div>
+        </div>
+    </div>
+
+</div>
