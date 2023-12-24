@@ -16,10 +16,19 @@ const cloudinary = require('cloudinary')
 var ytdl = require('ytdl-core');
 const cors = require('cors');
 const app = express();
+const http = require("http")
+const https = require("https");
 
-const https = require(process.env.LOCAL == 'localhost' ? 'http' : 'https').createServer(app);
-const io = require('socket.io')(https);
+const httpServer  = http.createServer();
+const httpsServer = https.createServer({
+    "key" : fs.readFileSync('/etc/letsencrypt/live/fernandojunio.com.br/privkey.pem', 'utf8'),
+    "cert": fs.readFileSync('/etc/letsencrypt/live/fernandojunio.com.br/cert.pem', 'utf8'),
+});
 
+const ioServer = require( "socket.io" );
+const io = new ioServer();
+io.attach( httpServer  );
+io.attach( httpsServer );
 
 
 const socketManager = require('./socket.io/index-socket');
@@ -945,6 +954,9 @@ app.get('/test',(req,res)=>{
 
 
 //TODO SERVER
-https.listen(configs.port,()=>{
-    console.log(`Servidor rodando na porta ${configs.port}` );
+httpServer.listen(configs.port.http,()=>{
+    console.log(`Servidor rodando na porta ${configs.port.http}` );
+});
+httpsServer.listen(configs.port.https,()=>{
+    console.log(`Servidor rodando na porta ${configs.port.https}` );
 });
