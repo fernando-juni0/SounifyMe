@@ -5,11 +5,11 @@ try {
     async function  model(props,firebase) {
         let arrayData = []
         firebase.forEach((doc)=>{
-                var data = doc.data()
-                data.doc = doc.id
+            var data = doc.data()
+            data.doc = doc.id
 
-                arrayData.push(data)
-            })
+            arrayData.push(data)
+        })
         return await Promise.all(arrayData);
         
     }

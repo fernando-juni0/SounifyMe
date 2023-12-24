@@ -150,6 +150,7 @@ html,body,#main-containner,#containner,#body-containner{
                             .server-list-col-img-text-containner{
                                 display: flex;
                                 margin-left: 1em;
+                                width: 20%;
                                 .server-list-img {
                                     height: 4em;
                                 }
@@ -157,6 +158,9 @@ html,body,#main-containner,#containner,#body-containner{
                                     width: 4em;
                                     height: 4em;
                                     border-radius: 20em;
+                                    background-color: var(--border-color2);
+                            
+                                    
                                 }
                                 .server-list-texts{
                                     display: flex;
@@ -167,7 +171,10 @@ html,body,#main-containner,#containner,#body-containner{
                                     justify-content: center;
                                     .server-list-name{
                                         margin-bottom: 0.2em;
-                                      .server-list-name-span{
+                                      .server-list-name-h1{
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis; 
                                         color: var(--color-text-primary);
                                         font: 600 1.4em 'inter',sans-serif;
                                       }  

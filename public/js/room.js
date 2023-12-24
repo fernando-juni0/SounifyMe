@@ -1,6 +1,9 @@
 const socket = io();
 
-window.addEventListener("beforeunload", function (event) { });
+window.addEventListener("beforeunload", function (event) {
+    event.preventDefault();
+    event.returnValue = ''
+});
 
 var url = window.location.pathname;
 var partes = url.split("/");

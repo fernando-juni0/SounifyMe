@@ -4,12 +4,15 @@
     <%- include('./reusable/head.ejs') %>
     <title>SounifyMe - Conectar-Se</title>
     <link rel="stylesheet" href="../public/css/conection.css">
+    <script src="../public/js/createRoom.js"></script>
 </head>
 <body>
     <div id="body-containner">
         <%- include('./reusable/reload.ejs') %>
+        <%- include('./createRoom.ejs') %>
         <div id="containner">
             <%- include('./reusable/header.ejs',{banda:user.banda, index:2,perfil:{nome:user.displayName,profileImg:user.profilePic == null ? "../public/img/logo_icon.png" : user.profilePic} }) %>
+
             <main id="main-containner">
                 <div id="main-content">
                     <div id="top-title-containner">
@@ -41,7 +44,7 @@
                                                         </div>
                                                         <div class="server-list-texts">
                                                             <div class="server-list-name">
-                                                                <span class="server-list-name-span"><%= element.roomName %></span>
+                                                                <h1 class="server-list-name-h1"><%= element.roomName %></h1>
                                                             </div>
                                                             <div class="server-list-musicAc">
                                                                 <span class="server-list-musicAc-span">Tocando:<p class="server-list-musicAc-p" title="<%= element.musicaAtual == null || element.musicaAtual == undefined ? '' : element.musicaAtual.musica  %>"><%= element.musicaAtual == null || element.musicaAtual == undefined ? '' : element.musicaAtual.musica %></p></span>

@@ -167,7 +167,7 @@ function refreshRooms() {
                 document.getElementById('server-list-row').innerHTML = ''
                  
                 response.data.forEach((element,index)=>{
-                    let musicaAtual = element.musicaAtual.musica == undefined || element.musicaAtual.musica == null ? '' : element.musicaAtual.musica
+                    let musicaAtual = 'musicaAtual' in element ? 'musica' in element.musicaAtual ? element.musicaAtual.musica : null : null
                     document.getElementById('server-list-row').innerHTML += `
                     <div class="server-list-col" data-index="${index}" data-roomId="${ element.roomId }">
                         <div class="server-list-col-img-text-containner">
@@ -176,7 +176,7 @@ function refreshRooms() {
                             </div>
                             <div class="server-list-texts">
                                 <div class="server-list-name">
-                                    <span class="server-list-name-span">${element.roomName}</span>
+                                    <h1 class="server-list-name-h1">${element.roomName}</h1>
                                 </div>
                                 <div class="server-list-musicAc">
                                     <span class="server-list-musicAc-span">Tocando:<p class="server-list-musicAc-p" title="${musicaAtual}">${musicaAtual}</p></span>
@@ -221,3 +221,8 @@ function refreshRooms() {
         }
     })
 }
+
+
+document.getElementById('create-room-button').addEventListener('click',()=>{
+    document.getElementById('create-room-containner').show('flex')
+})

@@ -1,10 +1,9 @@
 <link rel="stylesheet" href="../public/css/createRoom.css">
-<%- include('./reusable/head.ejs') %>
-<div id="create-room-containner">
-    <form id="create-room-content">
+<div id="create-room-containner" style="display: none;">
+    <form id="create-room-content" enctype="multipart/form-data" action="/createRoom" method="post">
         <div id="create-room-top-Options">
             <div id="create-room-top-Options-cacel-button">
-                <button style="background-color: rgb(128, 27, 27);" class="create-room-top-Options-buttons">Cancelar</button>
+                <input type="button" id="create-room-top-cancel" type="button" style="background-color: rgb(128, 27, 27); user-select: none; -webkit-user-drag: none;" class="create-room-top-Options-buttons" value="Cancelar">
             </div>
             <div id="create-room-top-Options-title">
                 <span id="create-room-top-Options-title-span">Criar Sala</span>
@@ -19,35 +18,37 @@
                     Imagem da Sala
                 </h1>
                 <div id="create-room-image-content">
-                    <img id="create-room-image-preview" src="" alt="">
-                    <input type="file" name="roomImage" id="create-room-image-input">
+                    <div id="create-room-image-preview-content">
+                        <img id="create-room-image-preview" src="../public/img/logo_icon.png">
+                    </div>
+                    <input type="file" accept="image/*" name="roomPic" id="create-room-image-input">
                 </div>
             </div>
             <div id="create-room-inputs">
                 <div id="create-room-name-content">
-                    <span class="create-room-inputs-title" id="create-room-name-title">Nome da Sala</span>
-                    <input class="create-room-inputs-basic" type="text" name="roomName" id="create-room-name-input">
+                    <span class="create-room-inputs-title" id="create-room-name-title">Nome da Sala <span style="color: rgb(211, 34, 34); font-size: 0.8em;" >* </span></span>
+                    <input class="create-room-inputs-basic" required value="" placeholder="De um nome a sua sala!" type="text"  name="roomName" id="create-room-name-input">
                 </div>
                 <div id="create-room-style-music-content">
-                    <span class="create-room-inputs-title"  id="create-room-style-music-title">Gêneros Musicais</span>
-                    <input class="create-room-inputs-basic" type="text" name="roomStyles" id="create-room-style-music-input">
+                    <span class="create-room-inputs-title" id="create-room-style-music-title" title="Caso queira adicionar os estilos de músicas da sala manualmente, insira aqui dividindo cada estilo com uma vírgula! (EX: rock, pop, eletrônica...)">Gêneros Musicais</span>
+                    <input class="create-room-inputs-basic" placeholder="(Opicional) Adicione os estilos da sua sala separado por virgula!" title="(Opicional) Adicione os estilos da sua sala separado por virgula!" type="text" name="estilos" id="create-room-style-music-input">
                 </div>
                 <div id="create-room-duble-inputs-content">
                     <div id="create-room-pass-content">
-                        <span class="create-room-inputs-title" id="create-room-pass-title">Senha</span>
-                        <input class="create-room-inputs-basic" type="text" name="roomPass" id="create-room-pass-input">
+                        <span class="create-room-inputs-title" id="create-room-pass-title" title="Caso queira que a sala tenha uma senha, insira aqui!">Senha</span>
+                        <input class="create-room-inputs-basic" placeholder="(Opicional) Proteja a sua sala!" title="(Opicional) Proteja a sua sala!" type="text" name="pass" id="create-room-pass-input">
                     </div>
+                    <div id="space-inpus"></div>
                     <div id="create-room-max-pessoas-content">
-                        <span class="create-room-inputs-title"  id="create-room-max-pessoas-title">Máximo de Pessoas</span>
-                        <input class="create-room-inputs-basic" type="text" name="roomMax" id="create-room-max-pessoas-input">
+                        <span class="create-room-inputs-title"  id="create-room-max-pessoas-title" title="Caso queira que a sala tenha um limite de pessoas, insira aqui!">Máximo de Pessoas</span>
+                        <input class="create-room-inputs-basic" value="10" placeholder="(Opicional) Quantas pessoas porem entrar na sala?" title="(Opicional) Quantas pessoas porem entrar na sala?" max="30" min="1" type="number" name="maxpessoas" id="create-room-max-pessoas-input">
                     </div>
                 </div>
             </div>
             <div id="create-room-inv-code">
-    
+                <h1 id="create-room-inv-code-h1" title="Envie esse código para seus amigos entrarem na sala diretamente!">O código de convite da sala é: <span title="Copiar Código" id="create-room-inv-code-span">123231</span></h1>
             </div>
         </div>
     </form>
 </div>
-<%- include('./reusable/script.ejs') %>
 <script src="../public/js/createRoom.js"></script>

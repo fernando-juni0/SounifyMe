@@ -17,10 +17,13 @@ var ytdl = require('ytdl-core');
 const cors = require('cors');
 const app = express();
 
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const https = require(process.env.LOCAL == 'localhost' ? 'http' : 'https').createServer(app);
+const io = require('socket.io')(https);
 
-const socketManager = require('./socket.io/index-socket')
+
+
+const socketManager = require('./socket.io/index-socket');
+const { url } = require('inspector');
 
 //TODO------------Configs--------------
 
@@ -124,6 +127,11 @@ app.post('/getRoom/:roomID',async(req,res)=>{
     res.status(200).json(responseData);
 })
 
+app.post('/views/createRoom',(req,res)=>{
+    let file = fs.readFileSync('./views/createRoom.ejs')
+    res.status(200).send(file)
+})
+
 //TODO-----------GET CONFIGS-----------------
 
 
@@ -195,7 +203,7 @@ app.get('/conection',functions.isAuthenticated,async(req,res)=>{
         await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
             const user = await functions.userModel(result,functions.removeArrayEmpty)
             let rooms = await db.findAll({colecao:'Conections'})
-            res.render('conection',{user:user,rooms:rooms})
+            res.render('conection',{user:user,rooms:rooms,createRoom:req.query.createRoom })
         })
     } else {
         res.redirect('/login')
@@ -645,24 +653,87 @@ app.post('/findRoomInv',async(req,res)=>{
     res.status(200).json(responseData);
 })
 
-app.post('/createRoom',async(req,res)=>{
-    var responseData = {}
-    const roomId = require('crypto').randomBytes(11).toString('hex');
-    const roomInvateCode = Math.random().toString().slice(2, 8);
-    let model = {
-        roomId:roomId,
-        roomInvateCode:roomInvateCode,
-        islocked: req.body.islocked,
-        pass: req.body.pass,
-        maxpessoas: req.body.maxpessoas,
-        estilos: req.body.estilos,
-        roomName: req.body.roomName,
-        roomPic: req.body.roomPic
+app.post('/createRoom', upload.single('roomPic'), async(req,res)=>{
+    async function numberGenerateID(){
+        const roomId = require('crypto').randomBytes(11).toString('hex');
+        return await db.findOne({ colecao:'Conections', where:['roomId',"==",roomId] }).then((err, resultado) => {
+            if (err) {
+                console.error("Erro ao verificar código no banco de dados:", err);
+                // Trate o erro de acordo com sua aplicação
+                // Chame a função novamente ou faça o que for necessário
+                numberGenerateID(); // Chama a função recursivamente em caso de erro
+            } else {
+                if (resultado) {
+                    // Se o código já existir, gere um novo código e repita o processo
+                    numberGenerateID(); // Chama a função novamente para gerar outro código
+                } else {
+                    return roomId
+                }
+            }
+        });
     }
-    await functions.createServerDB(model)
-    responseData.success = true
-    responseData.data = model
-    res.status(200).json(responseData);
+    async function numberGenerateINV(){
+        const roomInvateCode = Math.random().toString().slice(2, 8);
+        return await db.findOne({ colecao:'Conections', where:['roomInvateCode',"==",roomInvateCode] }).then((err,resultado)=>{
+            
+            if (err) {
+                console.error("Erro ao verificar código no banco de dados:", err);
+                // Trate o erro de acordo com sua aplicação
+                // Chame a função novamente ou faça o que for necessário
+                numberGenerateINV(); // Chama a função recursivamente em caso de erro
+            } else {
+                if (resultado) {
+                    // Se o código já existir, gere um novo código e repita o processo
+                    numberGenerateINV(); // Chama a função novamente para gerar outro código
+                } else {
+                    return roomInvateCode
+                }
+            }
+            
+        })
+    }
+    const roomIdV = await numberGenerateID()
+    const roomInvateCodeV = await numberGenerateINV()
+    if (req.file) {
+        let fileContent = fs.readFileSync(req.file.path)
+        try{
+            const stream = await cloudinary.uploader.upload_stream(async(result) => {
+                if (result) {
+                    await functions.createServerDB({
+                        roomId:roomIdV,
+                        roomInvateCode:roomInvateCodeV,
+                        islocked: req.body.pass ? req.body.pass.trim().length == 0 ? false : true : false,
+                        pass: req.body.pass,
+                        maxpessoas: req.body.maxpessoas,
+                        estilos: req.body.estilos,
+                        roomName: req.body.roomName,
+                        roomPic: result.url
+                    })
+                    
+                    fs.unlink(req.file.path, function (err){
+                        if (err) throw err;
+                    })
+                    res.status(200).redirect('/room/'+ roomIdV)
+                   
+                }
+            }, { 
+                public_id: "sounifyme/" + roomIdV + "-profileImg",
+                transformation: {
+                    width: 500, 
+                    height: 500,
+                    crop: "fill"
+                } 
+            });
+            await stream.write(fileContent);
+            await stream.end();
+        }catch(err){
+            console.log(err);
+        }
+    }
+
+    
+    // 
+    
 })
 
 
@@ -833,6 +904,21 @@ app.post('/getRoom',async(req,res)=>{
     })
 })
 
+app.post('/verifyRoom', async(req,res)=>{
+    let roomName = await db.findOne({colecao:'Conections',where:['roomName','==',req.body.roomName]})
+    if (roomName) {
+        res.status(200).json({
+            success:false,
+            data:'O nome da sala ja esta em uso!'
+        })
+    }else{
+        res.status(200).json({
+            success:true,
+            data:null
+        })
+    }
+})
+
 
 
 //TODO AUTH LOGIN
@@ -852,13 +938,13 @@ app.get('/logout',(req,res)=>{
 
 
 app.get('/test',(req,res)=>{
-    res.render('createRoom')
+    res.render('test')
 })
 
 
 
 
 //TODO SERVER
-http.listen(configs.port,()=>{
+https.listen(configs.port,()=>{
     console.log(`Servidor rodando na porta ${configs.port}` );
 });
