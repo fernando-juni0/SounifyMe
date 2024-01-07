@@ -1,3 +1,23 @@
+let isSize = window.innerWidth > 1190 ? true : false
+window.addEventListener('resize', function() {
+    // Captura a largura e altura da janela
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    if (width <= 1190) {
+        isSize = false
+    }else{
+        isSize = true
+    }
+});
+const createOpen = new URLSearchParams(window.location.search).get('create');
+
+if (createOpen == 'true') {
+    document.getElementById('create-room-containner').show('flex')
+}
+
+
+
 document.getElementById('find-room-icon').addEventListener('click',()=>{
     if (document.getElementById('find-room-input').value == 0) {
         document.getElementById('find-room-input').focus()
@@ -119,13 +139,17 @@ async function reqRooms(data) {
 }
 
 document.getElementById('random-room-button').addEventListener('click',async()=>{
-    await reqRooms('random')
+    if (isSize == true) {
+        await reqRooms('random')
+    }
 })
 
 document.querySelectorAll('.server-list-col').forEach((element,index)=>{
     element.addEventListener('click',()=>{
         let roomId = element.getAttribute('data-roomId')
-        reqRooms(roomId)
+        if (isSize == true) {
+            reqRooms(roomId)
+        }
         
     })
 })
@@ -205,7 +229,9 @@ function refreshRooms() {
                 document.querySelectorAll('.server-list-col').forEach((element,index)=>{
                     element.addEventListener('click',()=>{
                         let roomId = element.getAttribute('data-roomId')
-                        reqRooms(roomId)
+                        if (isSize == true) {
+                            reqRooms(roomId)
+                        }
                         
                     })
                 })
@@ -225,4 +251,6 @@ function refreshRooms() {
 
 document.getElementById('create-room-button').addEventListener('click',()=>{
     document.getElementById('create-room-containner').show('flex')
+    history.pushState({}, '', '/conection?create=true');
 })
+

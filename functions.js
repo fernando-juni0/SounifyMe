@@ -383,7 +383,8 @@ try {
                 roomId:data.roomId,
                 roomInvateCode:data.roomInvateCode,
                 roomName: data.roomName,
-                roomPic: data.roomPic ? data.roomPic : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png'
+                roomPic: data.roomPic ? data.roomPic : 'https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png',
+                admins: data.admins
             }).then(()=>{
                 return true
             }).catch((err)=>{

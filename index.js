@@ -657,37 +657,22 @@ app.post('/createRoom', upload.single('roomPic'), async(req,res)=>{
     async function numberGenerateID(){
         const roomId = require('crypto').randomBytes(11).toString('hex');
         return await db.findOne({ colecao:'Conections', where:['roomId',"==",roomId] }).then((err, resultado) => {
-            if (err) {
+            if (err || resultado) {
                 console.error("Erro ao verificar código no banco de dados:", err);
-                // Trate o erro de acordo com sua aplicação
-                // Chame a função novamente ou faça o que for necessário
-                numberGenerateID(); // Chama a função recursivamente em caso de erro
+                numberGenerateID();
             } else {
-                if (resultado) {
-                    // Se o código já existir, gere um novo código e repita o processo
-                    numberGenerateID(); // Chama a função novamente para gerar outro código
-                } else {
-                    return roomId
-                }
+                return roomId
             }
         });
     }
     async function numberGenerateINV(){
         const roomInvateCode = Math.random().toString().slice(2, 8);
         return await db.findOne({ colecao:'Conections', where:['roomInvateCode',"==",roomInvateCode] }).then((err,resultado)=>{
-            
-            if (err) {
+            if (err || resultado) {
                 console.error("Erro ao verificar código no banco de dados:", err);
-                // Trate o erro de acordo com sua aplicação
-                // Chame a função novamente ou faça o que for necessário
-                numberGenerateINV(); // Chama a função recursivamente em caso de erro
+                numberGenerateINV();
             } else {
-                if (resultado) {
-                    // Se o código já existir, gere um novo código e repita o processo
-                    numberGenerateINV(); // Chama a função novamente para gerar outro código
-                } else {
-                    return roomInvateCode
-                }
+                return roomInvateCode
             }
             
         })
@@ -707,7 +692,8 @@ app.post('/createRoom', upload.single('roomPic'), async(req,res)=>{
                         maxpessoas: req.body.maxpessoas,
                         estilos: req.body.estilos,
                         roomName: req.body.roomName,
-                        roomPic: result.url
+                        roomPic: result.url,
+                        admins: [req.session.uid]
                     })
                     
                     fs.unlink(req.file.path, function (err){
@@ -729,10 +715,20 @@ app.post('/createRoom', upload.single('roomPic'), async(req,res)=>{
         }catch(err){
             console.log(err);
         }
+    }else{
+        await functions.createServerDB({
+            roomId:roomIdV,
+            roomInvateCode:roomInvateCodeV,
+            islocked: req.body.pass ? req.body.pass.trim().length == 0 ? false : true : false,
+            pass: req.body.pass,
+            maxpessoas: req.body.maxpessoas,
+            estilos: req.body.estilos,
+            roomName: req.body.roomName,
+            roomPic: 'https://res.cloudinary.com/dgcnfudya/image/upload/v1699892735/fi3qe2pdlwwv24zpauu5.png',
+            admins: [req.session.uid]
+        })
+        res.status(200).redirect('/room/'+ roomIdV)
     }
-
-    
-    // 
     
 })
 
