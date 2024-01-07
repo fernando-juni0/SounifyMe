@@ -2,6 +2,7 @@ document.getElementById('create-room-image-preview-content').addEventListener('c
     document.getElementById('create-room-image-input').click()
 })
 
+
 document.getElementById('create-room-image-input').addEventListener('change', function() {
     let input = this
     if (input.files && input.files[0]) {
@@ -61,6 +62,22 @@ document.getElementById("create-room-content").addEventListener("submit", functi
     
     
 });
+
+document.getElementById('create-room-name-input').addEventListener('input',()=>{
+    history.pushState({}, '', `/conection${location.search}&name=${document.getElementById('create-room-inputs-basic').value}`);
+})
+document.getElementById('create-room-pass-input').addEventListener('input',()=>{
+    history.pushState({}, '', `/conection${location.search}&pass=${document.getElementById('create-room-pass-input').value}`);
+})
+document.getElementById('create-room-style-music-input').addEventListener('input',()=>{
+    history.pushState({}, '', `/conection${location.search}&style=${document.getElementById('create-room-style-music-input').value}`);
+})
+document.getElementById('create-room-max-pessoas-input').addEventListener('input',()=>{
+    history.pushState({}, '', `/conection${location.search}&max=${document.getElementById('create-room-max-pessoas-input').value}`);
+})
+
+
 document.getElementById('create-room-top-cancel').addEventListener('click',(event)=>{
     document.getElementById('create-room-containner').hide()
+    history.pushState({}, '', '/conection?create=false');
 })

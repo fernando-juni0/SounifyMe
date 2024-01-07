@@ -143,6 +143,7 @@ html,body,#main-containner,#containner,#body-containner{
                             align-items: center;
                             justify-content: space-between;
                             margin-bottom: 1em;
+                            gap: 2em;
                             &:not(:first-child){
                                 margin-top: 1em;
                                 
@@ -150,13 +151,20 @@ html,body,#main-containner,#containner,#body-containner{
                             .server-list-col-img-text-containner{
                                 display: flex;
                                 margin-left: 1em;
-                                width: 20%;
+                                flex-grow: 1;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                
                                 .server-list-img {
                                     height: 4em;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
                                 }
                                 .server-list-img img{
                                     width: 4em;
                                     height: 4em;
+                                    transition: 0.7s;
                                     border-radius: 20em;
                                     background-color: var(--border-color2);
                             
@@ -166,7 +174,10 @@ html,body,#main-containner,#containner,#body-containner{
                                     display: flex;
                                     flex-direction: column;
                                     margin-left: 0.8em;
-                                    max-width: 8em;
+                                    /* max-width: 8em; */
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    flex-grow: 1;
                                     height: 4em;
                                     justify-content: center;
                                     .server-list-name{
@@ -176,7 +187,9 @@ html,body,#main-containner,#containner,#body-containner{
                                         overflow: hidden;
                                         text-overflow: ellipsis; 
                                         color: var(--color-text-primary);
-                                        font: 600 1.4em 'inter',sans-serif;
+                                        font-weight: 600;
+                                        font-size: 1.4em;
+                                        font-family: 'inter',sans-serif;
                                       }  
                                       
                                     }
@@ -227,6 +240,7 @@ html,body,#main-containner,#containner,#body-containner{
                                 justify-content: center;
                                 .number-people-containner{
                                     .number-people-p{
+                                        text-wrap: nowrap;
                                         color: var(--color-text-primary);
                                         font: 500 1em 'inter',sans-serif;
                                     }
@@ -241,6 +255,9 @@ html,body,#main-containner,#containner,#body-containner{
                                 cursor: pointer;
                                 width: 2em;
                                 margin-right: 1em;
+                            }
+                            .enter-room svg{
+                                width: 2em;
                             }
                         }
                     }
@@ -492,7 +509,12 @@ html,body,#main-containner,#containner,#body-containner{
         display: none !important;
     }
 }
-@media screen and (max-width: 1180px) {
+@media screen and (max-width: 1190px) {
+
+    #server-list-right-containner{
+        width: 0% !important;
+        left: 200% !important;
+    }
     #room-right-music-name-h1{
         font-size: 1em !important;
 
@@ -506,5 +528,28 @@ html,body,#main-containner,#containner,#body-containner{
     #room-right-music-banda-p,#server-list-right-others-infos-pessoas-h1{
         font-size: 0.8em !important;
     }
+    .server-list-style-containner{
+        display: none !important;
+    }
+}
+@media screen and (max-width: 860px) {
+    #random-room-button{
+        display: none;
+    }
+    #server-list-buttons{
+        flex-wrap: wrap;
+        gap: 1em;
+    }
+    .server-list-img img{
 
+        width: 3em !important;
+        height: 3em !important;
+        transition: 0.7s;
+    }
+    .server-list-name-h1{
+        font-size: 1.2em !important;
+    }
+    .server-list-status{
+        display: none !important;
+    }
 }
