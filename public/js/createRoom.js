@@ -37,7 +37,7 @@ document.getElementById('create-room-inv-code-h1').addEventListener('click', fun
 });
 
 
-document.getElementById("create-room-content").addEventListener("submit", function(event) {
+document.getElementById("create-room-content").addEventListener("submit", async function(event) {
     event.preventDefault(); 
     $.ajax({
         traditional: true,
@@ -47,11 +47,11 @@ document.getElementById("create-room-content").addEventListener("submit", functi
         data: JSON.stringify( {
             roomName: document.getElementById('create-room-name-input').value,
         } ), 
-        success: function(response) {
-            console.log(1);
+        success:async function(response) {
+            console.log(response);
             if (response.success == true) {
                 document.getElementById("create-room-content").submit()
-            }else{
+            }else if (response.success == false) {
                 errorNotify(response.data)
             }
         },
@@ -62,17 +62,16 @@ document.getElementById("create-room-content").addEventListener("submit", functi
     
     
 });
-
-document.getElementById('create-room-name-input').addEventListener('input',()=>{
+document.getElementById('create-room-name-input').addEventListener('change',()=>{
     history.pushState({}, '', `/conection${location.search}&name=${document.getElementById('create-room-inputs-basic').value}`);
 })
-document.getElementById('create-room-pass-input').addEventListener('input',()=>{
+document.getElementById('create-room-pass-input').addEventListener('change',()=>{
     history.pushState({}, '', `/conection${location.search}&pass=${document.getElementById('create-room-pass-input').value}`);
 })
-document.getElementById('create-room-style-music-input').addEventListener('input',()=>{
+document.getElementById('create-room-style-music-input').addEventListener('change',()=>{
     history.pushState({}, '', `/conection${location.search}&style=${document.getElementById('create-room-style-music-input').value}`);
 })
-document.getElementById('create-room-max-pessoas-input').addEventListener('input',()=>{
+document.getElementById('create-room-max-pessoas-input').addEventListener('change',()=>{
     history.pushState({}, '', `/conection${location.search}&max=${document.getElementById('create-room-max-pessoas-input').value}`);
 })
 

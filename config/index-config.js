@@ -1,4 +1,8 @@
+const { json } = require('body-parser')
+
 require('dotenv').config()
+let serviceAccount = JSON.parse(process.env.SERVICEACCOUNT)
+let firebaseConfig = JSON.parse(process.env.FIREBASECONFIG)
 
 module.exports = {
     session:{
@@ -7,10 +11,10 @@ module.exports = {
         saveUninitialized: false,
     },
     port: process.env.PORT || 3000,
-    serviceAccount: require('../config/sounifyme-firebase-admin.json'),
-    firebaseConfig: require('../config/firebase-config.json'),
-    lastFmKey: '59af3a6cb9bba4735bd9bb9d47485c47',
-    spotifyClientId: '16ed8fdb95de4ea5a6fda5434762a574',
-    spotifyClientSecret:'ba9ecc5eacf74472b42bb5f27d31cf7c',
-    googleYoutubeToken: 'AIzaSyBH040ebD313-xHBvtDfLF1XOWZBF_HT1o'
+    serviceAccount: serviceAccount,
+    firebaseConfig:firebaseConfig,
+    lastFmKey: process.env.LASTFMKEY,
+    spotifyClientId: process.env.spotifyClientId,
+    spotifyClientSecret:process.env.spotifyClientSecret,
+    googleYoutubeToken: process.env.googleYoutubeToken
 }

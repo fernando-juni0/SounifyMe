@@ -553,3 +553,9 @@ html,body,#main-containner,#containner,#body-containner{
         display: none !important;
     }
 }
+
+@media screen and (max-width:500px) {
+    #server-list-content{
+        width: 100% !important;
+    }
+}

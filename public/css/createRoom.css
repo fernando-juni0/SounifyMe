@@ -57,6 +57,7 @@
             max-width: 50em;
             min-width: 30em;
             align-items: center;
+            gap: 1em;
             #create-room-image{
                 display: flex;
                 flex-direction: column;
@@ -115,7 +116,8 @@
                     width: 100%;
                     margin-bottom: 0.6em;
                     color: var(--color-text-primary);
-                    font: 1.4em 'inter',sans-serif;
+                    font-size: 1.4em;
+                    font-family:'inter',sans-serif;
                 }
                 .create-room-inputs-basic{
                     width: 100%;
@@ -177,4 +179,22 @@
 .create-room-svg{
     width: 1em;
     height: 1em;
+}
+
+@media screen and (max-width:550px) {
+    .create-room-top-Options-buttons{
+        font-size: 1.1em !important;
+  
+    }
+    .create-room-inputs-title{
+        font-size: 1.2em !important;
+        
+    }
+    #create-room-mid-content{
+        min-width: 24em !important;
+
+    }
+    #create-room-inv-code-h1{
+        font-size: 1.3em !important;
+    }
 }
