@@ -20,10 +20,7 @@ const app = express();
 const https = require('http').createServer(app);
 const io = require('socket.io')(https);
 
-
-
 const socketManager = require('./socket.io/index-socket');
-const { url } = require('inspector');
 
 //TODO------------Configs--------------
 
@@ -155,14 +152,10 @@ app.get('/', (req,res)=>{
 
 
 app.get('/home', functions.isAuthenticated, async (req,res)=>{
-    if (req.session.uid) {
-        await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
-            const user = await functions.userModel(result,functions.removeArrayEmpty)
-            res.render('index',{user:user})
-        })
-    } else {
-        res.redirect('/login')
-    }
+    await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
+        const user = await functions.userModel(result,functions.removeArrayEmpty)
+        res.render('index',{user:user})
+    })
 })
 
 app.get('/login', async (req,res)=>{
@@ -175,42 +168,22 @@ app.get('/login', async (req,res)=>{
     if (req.query.pass == 'invalid') {
         mensage = 'Senha incorreta!'
     }
-    if (req.query.redirect) {
-        if (req.session.uid) {
-            res.redirect(req.query.redirect)
-        } else {
-            res.render('login',{mensage,exist:req.query.exist,pass:req.query.pass,login: req.query.login ? req.query.login : null})
-        }
-    }else{
-        if (req.session.uid) {
-            res.redirect('/home')
-        } else {
-            res.render('login',{mensage,exist:req.query.exist,pass:req.query.pass,login: req.query.login ? req.query.login : null})
-        }
-    }
-    
+    res.render('login',{mensage,exist:req.query.exist,pass:req.query.pass,login: req.query.login ? req.query.login : null})
 })
 
 app.get('/room/:roomid',functions.isAuthenticated,async(req,res)=>{
-    if (req.session.uid) {
-        let room = await db.findOne({colecao:'Conections',doc:req.params.roomid})
-        let user = await db.findOne({colecao:"users",doc:req.session.uid})
-        res.render('room',{myUser:user,room:room})
-    } else {
-        res.redirect('/login')
-    }
+    let room = await db.findOne({colecao:'Conections',doc:req.params.roomid})
+    let user = await db.findOne({colecao:"users",doc:req.session.uid})
+    res.render('room',{myUser:user,room:room})
 })
 
 app.get('/conection',functions.isAuthenticated,async(req,res)=>{
-    if (req.session.uid) {
-        await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
-            const user = await functions.userModel(result,functions.removeArrayEmpty)
-            let rooms = await db.findAll({colecao:'Conections'})
-            res.render('conection',{user:user,rooms:rooms,createRoom:req.query.createRoom })
-        })
-    } else {
-        res.redirect('/login')
-    }
+    await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
+        const user = await functions.userModel(result,functions.removeArrayEmpty)
+        let rooms = await db.findAll({colecao:'Conections'})
+        res.render('conection',{user:user,rooms:rooms,createRoom:req.query.createRoom })
+    })
+
 })
 app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
     await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
