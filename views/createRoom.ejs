@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="../public/css/createRoom.css">
+
 <div id="create-room-containner" style="display: none;">
     <form id="create-room-content" enctype="multipart/form-data" action="/createRoom" method="post">
         <div id="create-room-top-Options">
@@ -46,9 +47,12 @@
                 </div>
             </div>
             <div id="create-room-inv-code">
-                <h1 id="create-room-inv-code-h1" title="Envie esse código para seus amigos entrarem na sala diretamente!">O código de convite da sala é: <span title="Copiar Código" id="create-room-inv-code-span">123231</span></h1>
+                <h1 id="create-room-inv-code-h1" title="Envie esse código para seus amigos entrarem na sala diretamente!">O código de convite da sala é: <span title="Copiar Código" id="create-room-inv-code-span"></span></h1>
             </div>
+            <input type="text" name="roomId" id="inv-roomid" hidden value="">
+            <input type="text" name="roomInvateCode" id="inv-roomcode" hidden>
         </div>
     </form>
 </div>
-<script src="../public/js/createRoom.js"></script>
+
+<script  src="../public/js/createRoom.js"></script>

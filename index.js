@@ -53,7 +53,7 @@ app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs');
 
 
-const auth = getAuth();
+// const auth = getAuth();
 
 
 //TODO Multer
@@ -131,6 +131,9 @@ app.post('/views/createRoom',(req,res)=>{
     let file = fs.readFileSync('./views/createRoom.ejs')
     res.status(200).send(file)
 })
+
+
+
 
 //TODO-----------GET CONFIGS-----------------
 
@@ -271,6 +274,12 @@ app.get('/404/:type',(req,res)=>{
 
 //TODO-----------------POST--------------------
 
+
+app.post('/auth/reset/pass',(req,res)=>{
+    authentication.resetPass(req.body.email)
+})
+
+
 app.post('/auth/Google', async (req,res)=>{
     authentication.googleLogin(req,res).then(()=>{
         res.redirect('/home')
@@ -280,9 +289,9 @@ app.post('/auth/Google', async (req,res)=>{
 app.post('/auth/email', async (req,res)=>{
     fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
         if (signInMethods.length > 0) {
-            if (signInMethods == "google.com") {
-                return res.redirect('/auth/Google/login')
-            }
+            // if (signInMethods == "google.com") {
+            //     return res.redirect('/auth/Google/login')
+            // }
             authentication.singInEmail(req,res)
         }else{
             authentication.singUpEmail(req,res)
@@ -293,9 +302,9 @@ app.post('/auth/email', async (req,res)=>{
 app.post('/auth/email/login', async (req,res)=>{
     fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
         if (signInMethods.length > 0) {
-            if (signInMethods == "google.com") {
-                return res.redirect('/auth/Google/login')
-            }
+            // if (signInMethods == "google.com") {
+            //     return res.redirect('/auth/Google/login')
+            // }
             authentication.singInEmail(req,res)
         }else{
             return res.redirect('/login?login=false&exist=false')
@@ -654,6 +663,61 @@ app.post('/findRoomInv',async(req,res)=>{
 })
 
 app.post('/createRoom', upload.single('roomPic'), async(req,res)=>{
+    if (req.file) {
+        let fileContent = fs.readFileSync(req.file.path)
+        try{
+            const stream = await cloudinary.uploader.upload_stream(async(result) => {
+                if (result) {
+                    await functions.createServerDB({
+                        roomId:req.body.roomId,
+                        roomInvateCode:req.body.roomInvateCode,
+                        islocked: req.body.pass ? req.body.pass.trim().length == 0 ? false : true : false,
+                        pass: req.body.pass,
+                        maxpessoas: req.body.maxpessoas,
+                        estilos: req.body.estilos,
+                        roomName: req.body.roomName,
+                        roomPic: result.url,
+                        admins: [req.session.uid]
+                    })
+                    
+                    fs.unlink(req.file.path, function (err){
+                        if (err) throw err;
+                    })
+                    res.status(200).redirect('/room/'+ req.body.roomIdV)
+                   
+                }
+            }, { 
+                public_id: "sounifyme/" + req.body.roomId + "-profileImg",
+                transformation: {
+                    width: 500, 
+                    height: 500,
+                    crop: "fill"
+                } 
+            });
+            await stream.write(fileContent);
+            await stream.end();
+        }catch(err){
+            console.log(err);
+        }
+    }else{
+        await functions.createServerDB({
+            roomId:req.body.roomId,
+            roomInvateCode:req.body.roomInvateCode,
+            islocked: req.body.pass ? req.body.pass.trim().length == 0 ? false : true : false,
+            pass: req.body.pass,
+            maxpessoas: req.body.maxpessoas,
+            estilos: req.body.estilos,
+            roomName: req.body.roomName,
+            roomPic: 'https://res.cloudinary.com/dgcnfudya/image/upload/v1699892735/fi3qe2pdlwwv24zpauu5.png',
+            admins: [req.session.uid]
+        })
+        res.status(200).redirect('/room/'+ req.body.roomIdV)
+    }
+    
+})
+
+
+app.post('/getcodesroom',async(req,res)=>{
     async function numberGenerateID(){
         const roomId = require('crypto').randomBytes(11).toString('hex');
         return await db.findOne({ colecao:'Conections', where:['roomId',"==",roomId] }).then((err, resultado) => {
@@ -677,59 +741,9 @@ app.post('/createRoom', upload.single('roomPic'), async(req,res)=>{
             
         })
     }
-    const roomIdV = await numberGenerateID()
-    const roomInvateCodeV = await numberGenerateINV()
-    if (req.file) {
-        let fileContent = fs.readFileSync(req.file.path)
-        try{
-            const stream = await cloudinary.uploader.upload_stream(async(result) => {
-                if (result) {
-                    await functions.createServerDB({
-                        roomId:roomIdV,
-                        roomInvateCode:roomInvateCodeV,
-                        islocked: req.body.pass ? req.body.pass.trim().length == 0 ? false : true : false,
-                        pass: req.body.pass,
-                        maxpessoas: req.body.maxpessoas,
-                        estilos: req.body.estilos,
-                        roomName: req.body.roomName,
-                        roomPic: result.url,
-                        admins: [req.session.uid]
-                    })
-                    
-                    fs.unlink(req.file.path, function (err){
-                        if (err) throw err;
-                    })
-                    res.status(200).redirect('/room/'+ roomIdV)
-                   
-                }
-            }, { 
-                public_id: "sounifyme/" + roomIdV + "-profileImg",
-                transformation: {
-                    width: 500, 
-                    height: 500,
-                    crop: "fill"
-                } 
-            });
-            await stream.write(fileContent);
-            await stream.end();
-        }catch(err){
-            console.log(err);
-        }
-    }else{
-        await functions.createServerDB({
-            roomId:roomIdV,
-            roomInvateCode:roomInvateCodeV,
-            islocked: req.body.pass ? req.body.pass.trim().length == 0 ? false : true : false,
-            pass: req.body.pass,
-            maxpessoas: req.body.maxpessoas,
-            estilos: req.body.estilos,
-            roomName: req.body.roomName,
-            roomPic: 'https://res.cloudinary.com/dgcnfudya/image/upload/v1699892735/fi3qe2pdlwwv24zpauu5.png',
-            admins: [req.session.uid]
-        })
-        res.status(200).redirect('/room/'+ roomIdV)
-    }
-    
+    const roomId = await numberGenerateID()
+    const roomInvateCode = await numberGenerateINV()
+    res.status(200).json({success:true,roomId:roomId,roomInvateCode:roomInvateCode})
 })
 
 
@@ -902,7 +916,7 @@ app.post('/getRoom',async(req,res)=>{
 
 app.post('/verifyRoom', async(req,res)=>{
     let roomName = await db.findOne({colecao:'Conections',where:['roomName','==',req.body.roomName]})
-    if (roomName) {
+    if (!Object.keys(roomName).length == 0) {
         res.status(200).json({
             success:false,
             data:'O nome da sala ja esta em uso!'
@@ -938,6 +952,11 @@ app.get('/test',(req,res)=>{
 })
 
 
+
+
+app.use((req, res, next) => {
+    res.status(404).render('NotFoundPage.ejs',{type:null})
+});
 
 
 //TODO SERVER

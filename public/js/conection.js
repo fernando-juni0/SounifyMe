@@ -13,7 +13,23 @@ window.addEventListener('resize', function() {
 const createOpen = new URLSearchParams(window.location.search).get('create');
 
 if (createOpen == 'true') {
-    document.getElementById('create-room-containner').show('flex')
+    $.ajax({
+        traditional: true,
+        url: '/getcodesroom',
+        type: 'POST',
+        success: function(response) {
+            if (response.success == true) {
+                document.getElementById('create-room-inv-code-span').innerText = response.roomInvateCode
+                document.getElementById('inv-roomcode').value = response.roomInvateCode
+                document.getElementById('inv-roomid').value = response.roomId
+                
+                document.getElementById('create-room-containner').show('flex')
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+        }
+    }) 
 }
 
 
@@ -249,7 +265,25 @@ function refreshRooms() {
 }
 
 
-document.getElementById('create-room-button').addEventListener('click',()=>{
+document.getElementById('create-room-button').addEventListener('click',async()=>{
+    let codes = await new Promise((resolve, reject) => {
+        $.ajax({
+            traditional: true,
+            url: '/getcodesroom',
+            type: 'POST',
+            success: function(response) {
+                if (response.success == true) {
+                    resolve({roomInvateCode:response.roomInvateCode,roomId:response.roomId})
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        })
+    })
+    document.getElementById('create-room-inv-code-span').innerText = codes.roomInvateCode
+    document.getElementById('inv-roomcode').value = codes.roomInvateCode
+    document.getElementById('inv-roomid').value = codes.roomId
     document.getElementById('create-room-containner').show('flex')
     history.pushState({}, '', '/conection?create=true');
 })

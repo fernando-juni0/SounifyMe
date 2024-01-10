@@ -9,6 +9,114 @@ let miniPerfilMiniHeader = document.getElementById('profile-image-miniheader')
 let header = document.getElementById('header')
 let miniHeader = document.getElementById('miniHeader')
 
+let isSetNoneMenu = window.innerWidth < 700 ? true : false
+
+const menuType = localStorage.getItem('menu')
+
+addEventListener('resize',()=>{
+    let windowWidth = window.innerWidth
+    if (windowWidth > 1000) {
+        setMenuResize('full')
+        isSetNoneMenu = false
+    }
+    if (windowWidth < 700) {
+        isSetNoneMenu = true
+        setMenuResize('none')
+    }
+    
+    if (windowWidth <= 1000) {
+        setMenuResize('mini')
+    }   
+    if (windowWidth <= 500) {
+        setMenuResize('none')
+    }
+})
+
+if (window.innerWidth <= 1000) {
+    setMenuResize('mini')
+}   
+
+if (window.innerWidth <= 500) {
+    setMenuResize('none')
+}
+switch (menuType) {
+    case 'full':
+        setMenuResize('full')
+        break;
+    case 'mini':
+        setMenuResize('mini')
+        break
+    case 'none':
+        setMenuResize('none')
+        break
+    default:
+        if (isSetNoneMenu == true) {
+            localStorage.setItem('menu','none')
+            setMenuResize('none')
+        }else{
+            localStorage.setItem('menu','full')
+            setMenuResize('full')
+        }
+        break;
+}
+document.getElementById('hamburgerMenu').addEventListener('click', ()=>{
+    console.log(isSetNoneMenu);
+    if (isSetNoneMenu == true) {
+        if (localStorage.getItem('menu')  == 'full' || localStorage.getItem('menu') == 'mini') {
+            setMenuResize('none')
+        }else{
+            setMenuResize('mini')
+        }
+    }else{
+        let menudata = localStorage.getItem('menu') ? localStorage.getItem('menu') : 'full'
+        console.log(menudata);
+        if (menudata == 'mini') {
+            setMenuResize('full')
+        }else{
+            setMenuResize('mini')
+        }
+        
+    }
+    
+})
+
+
+function setMenuResize(type) {
+    switch (type) {
+        case 'full':
+                header.show('flex')
+                miniHeader.hide()
+                localStorage.setItem('menu','full') 
+                document.getElementById('main-containner').style.width = 'calc(100% - 15em)'
+            break;
+        case 'mini':
+            document.getElementById('main-containner').style.width = 'calc(100% - 4em)'
+            header.hide()
+            miniHeader.show('flex')
+            localStorage.setItem('menu','mini') 
+            break
+        case 'none':
+            header.hide()
+            miniHeader.hide()
+            localStorage.setItem('menu','none') 
+            document.getElementById('main-containner').style.width ='100%'
+            break
+        default:
+            if (isSetNoneMenu == true) {
+                localStorage.setItem('menu','none')
+                header.hide()
+                miniHeader.hide()
+                document.getElementById('main-containner').style.width ='100%'
+            }else{
+                header.show('flex')
+                miniHeader.hide()
+                localStorage.setItem('menu','full')
+            }
+            break;
+    }
+}
+
+
 miniperfil.addEventListener('click',()=>{
     optionsMiniperfil[0].classList.toggle('optionsOpen')
 })
@@ -21,51 +129,8 @@ document.getElementById('close-options').addEventListener('click',()=>{
     optionsMiniperfil[0].classList.toggle('optionsOpen')
 })
 
-const menuType = localStorage.getItem('menu')
-
-if (menuType == null || menuType == undefined) {
-    localStorage.setItem('menu','full')
-}else if(menuType == 'full'){
-    header.show('flex')
-    miniHeader.hide()
-}else{
-    document.getElementById('main-containner').style.width = 'calc(100% - 4em)'
-    header.hide()
-    miniHeader.show('flex')
-}
 
 
-
-document.getElementById('hamburgerMenu').addEventListener('click', ()=>{
-    header.toggle()
-    miniHeader.toggle('flex')
-    if (miniHeader.style.display == 'none') {
-        document.getElementById('main-containner').style.width = 'calc(100% - 15em)'
-        localStorage.setItem('menu','full')
-    }else{
-        document.getElementById('main-containner').style.width = 'calc(100% - 4em)'
-        localStorage.setItem('menu','mini')
-    }
-    
-})
-var windowWidth = window.innerWidth
-if (windowWidth <= 1000) {
-    setMenuResize()
-}   
-addEventListener('resize',()=>{
-    windowWidth = window.innerWidth
-    if (windowWidth <= 1000) {
-        setMenuResize()
-    }   
-})
-function setMenuResize() {
-    if (localStorage.getItem('menu') == 'full') {
-        header.hide()
-        miniHeader.show('flex')
-        document.getElementById('main-containner').style.width = 'calc(100% - 4em)'
-        localStorage.setItem('menu','mini')
-    } 
-}
 
 
 document.getElementById('logout').addEventListener('click',()=>{
