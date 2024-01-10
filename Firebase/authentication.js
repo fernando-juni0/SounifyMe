@@ -8,8 +8,6 @@ try {
     var functions = require('../functions')
     const db = require('./models')
 
-    const SpotifyWebApi = require('spotify-web-api-node');
-
     const firebaseDATA = require('../config/index-config').firebaseConfig
 
 

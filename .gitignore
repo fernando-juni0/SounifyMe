@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+config/firebase-config.json
+config/sounifyme-firebase-admin.json

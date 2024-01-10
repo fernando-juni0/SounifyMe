@@ -60,7 +60,6 @@ switch (menuType) {
         break;
 }
 document.getElementById('hamburgerMenu').addEventListener('click', ()=>{
-    console.log(isSetNoneMenu);
     if (isSetNoneMenu == true) {
         if (localStorage.getItem('menu')  == 'full' || localStorage.getItem('menu') == 'mini') {
             setMenuResize('none')
@@ -69,7 +68,6 @@ document.getElementById('hamburgerMenu').addEventListener('click', ()=>{
         }
     }else{
         let menudata = localStorage.getItem('menu') ? localStorage.getItem('menu') : 'full'
-        console.log(menudata);
         if (menudata == 'mini') {
             setMenuResize('full')
         }else{
