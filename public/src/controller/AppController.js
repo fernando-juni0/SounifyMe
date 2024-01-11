@@ -4,19 +4,6 @@ class AppController{
         console.log('AppController: OK');
 
         this.elementsPrototype()
-        this.loadElements()
-
-    }
-
-    loadElements() {
-
-        this.el = {};
-
-        document.querySelectorAll('[id]').forEach(element => {
-
-            this.el[Format.getCamelcase(element.id)] = element;
-
-        });
 
     }
 

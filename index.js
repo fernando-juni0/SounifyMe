@@ -50,7 +50,7 @@ app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs');
 
 
-// const auth = getAuth();
+const auth = getAuth();
 
 
 //TODO Multer
@@ -123,12 +123,6 @@ app.post('/getRoom/:roomID',async(req,res)=>{
     }
     res.status(200).json(responseData);
 })
-
-app.post('/views/createRoom',(req,res)=>{
-    let file = fs.readFileSync('./views/createRoom.ejs')
-    res.status(200).send(file)
-})
-
 
 
 
@@ -262,9 +256,9 @@ app.post('/auth/Google', async (req,res)=>{
 app.post('/auth/email', async (req,res)=>{
     fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
         if (signInMethods.length > 0) {
-            // if (signInMethods == "google.com") {
-            //     return res.redirect('/auth/Google/login')
-            // }
+            if (signInMethods == "google.com") {
+                return res.redirect('/auth/Google/login')
+            }
             authentication.singInEmail(req,res)
         }else{
             authentication.singUpEmail(req,res)
@@ -275,13 +269,15 @@ app.post('/auth/email', async (req,res)=>{
 app.post('/auth/email/login', async (req,res)=>{
     fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
         if (signInMethods.length > 0) {
-            // if (signInMethods == "google.com") {
-            //     return res.redirect('/auth/Google/login')
-            // }
+            if (signInMethods == "google.com") {
+                return res.redirect('/auth/Google/login')
+            }
             authentication.singInEmail(req,res)
         }else{
             return res.redirect('/login?login=false&exist=false')
         }
+    }).catch((err)=>{
+        console.log(err);
     })
 })
 
@@ -926,11 +922,9 @@ app.get('/test',(req,res)=>{
 
 
 
-
 app.use((req, res, next) => {
     res.status(404).render('NotFoundPage.ejs',{type:null})
 });
-
 
 //TODO SERVER
 https.listen(configs.port,()=>{

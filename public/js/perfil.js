@@ -119,7 +119,7 @@ async function folowInfoPopupUserAdd(users,page,plus) {
             <a href="/user/${element.uid}">
                 <div class="folow-info-col flex-center" >
                     <div class="profileImg-col-containner flex-center" >
-                        <img class="profileImg-col" src="${element.profilePic == null ? "../public/img/logo_icon.png" : element.profilePic}">
+                        <img class="profileImg-col" src="${element.profilePic == null ? "https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png" : element.profilePic}">
                     </div>
                     <div class="usernameProfile-col">
                         <span>${element.displayName}</span>

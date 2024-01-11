@@ -331,7 +331,7 @@ document.getElementById("options-button-play-music").addEventListener("click", a
 function clearMusic() {
     document.getElementById("audioTag").src = "";
     document.getElementById("current-music-pic-img").src =
-        "../public/img/istockphoto-1292092283-612x612.jpg";
+        "https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg";
     document.getElementById("current-music-texts-name-h1").innerText =
         "Nome da Musica";
     document.getElementById("current-music-texts-banda-p").innerText =
