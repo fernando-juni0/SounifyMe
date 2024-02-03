@@ -18,7 +18,7 @@ const cors = require('cors');
 const app = express();
 
 const https = require('http').createServer(app);
-const io = require('socket.io')(https);
+const io = require('socket.io')(https,{'pingTimeout': 7000, 'pingInterval': 3000});
 
 const socketManager = require('./socket.io/index-socket');
 
@@ -875,12 +875,21 @@ app.post('/desfFriend',async(req,res)=>{
 })
 
 
-app.post('/getRoom',async(req,res)=>{
-    let rooms = await db.findAll({colecao:'Conections'})
-    res.status(200).json({
-        success:true,
-        data:rooms
-    })
+app.post('/getRoom/:id?',async(req,res)=>{
+    if (req.params.id) {
+        let room = await db.findOne({colecao:'Conections',doc:req.params.id})
+        res.status(200).json({
+            success:true,
+            data:room
+        })
+    }else{
+        let rooms = await db.findAll({colecao:'Conections'})
+        res.status(200).json({
+            success:true,
+            data:rooms
+        })
+    }
+    
 })
 
 app.post('/verifyRoom', async(req,res)=>{
@@ -919,6 +928,13 @@ app.get('/logout',(req,res)=>{
 app.get('/test',(req,res)=>{
     res.render('test')
 })
+
+
+app.post('/stateUser/:user/:state',(req,res)=>{
+    console.log(req.params);
+    res.sendStatus(200)
+})
+
 
 
 

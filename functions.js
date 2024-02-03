@@ -253,7 +253,6 @@ try {
         },
         searchTrackLink:async (songName)=> {
             const accessToken = (await require('./Firebase/authentication').authenticateSpotify());
-          
             const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(songName)}&type=track`, {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -262,12 +261,11 @@ try {
                 return res
             }).catch(err=>{
                 console.error(err);
-                return
+                return "erro"
                 
             });
           
             const data = await response.json();
-            
             if (data.tracks && data.tracks.items.length > 0) {
                 try{
                     const track = data.tracks.items[0];
@@ -275,7 +273,7 @@ try {
                         return res
                     }).catch(err=>{
                         console.error(err);
-                        return 
+                        return "erro"
                     });
                     
                     const data2 = await response2.json();
@@ -283,7 +281,7 @@ try {
                         return res
                     }).catch(err=>{
                         console.error(err);
-                        return
+                        return "erro"
                     });
                     
                     const link = ytdl.chooseFormat(info.formats, { filter: 'audioonly' }).url
@@ -300,6 +298,7 @@ try {
                 
             } else {
               console.error('Nenhuma música encontrada.');
+              return "erro"
             }
         },
         getPlaylistYoutube:async(playlistUrl)=>{

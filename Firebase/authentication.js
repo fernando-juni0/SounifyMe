@@ -27,7 +27,7 @@ try {
                     id: idCount.userCount,
                     uid:user.uid,
                     displayName: displayNameModify,
-                    profilePic: user.photoURL == undefined || user.photoURL == null ? '../public/img/logo_icon.png' : user.photoURL,
+                    profilePic: user.photoURL == undefined || user.photoURL == null ? 'https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png' : user.photoURL,
                     email: user.email,
                     emailVerificad: user.emailVerified == undefined ? null : user.emailVerified,
                     phoneNumber: user.phoneNumber == undefined ? null : user.phoneNumber,

@@ -94,12 +94,10 @@ document.getElementById('emailFormCadastro').addEventListener('submit',(e)=>{
             return false
         }
         if (password.trim() === '') {
-            console.log(1);
             mensage.innerText = 'Digite uma senha!'
             return false
         }
         if (termos.checked == false) {
-            console.log(1);
             mensage.innerText = 'Aceite os termos de uso para continuar!'
             return false
         }

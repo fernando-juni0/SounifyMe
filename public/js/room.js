@@ -1,5 +1,4 @@
-const socket = io();
-
+// const socket = io();
 window.addEventListener("beforeunload", function (event) {
     event.preventDefault();
     event.returnValue = ''
@@ -19,6 +18,8 @@ var currentMusicBanda = document.getElementById("current-music-texts-banda-p");
 var currentMusicContent = document.getElementById("current-music-content");
 
 var openVote = false;
+
+var reqMusicsArr = []
 
 function removeDuplicates(arr) {
     const uniqueValues = [];
@@ -49,18 +50,16 @@ document.getElementById("click-button-back").addEventListener("click", async () 
     await socket.emit("leaveRoom", { roomID: roomID, uid: uid });
     location.href = "/conection";
 });
-document
-    .getElementById("click-button-continuar")
-    .addEventListener("click", async () => {
-        document.getElementById("click-containner").hide();
-        document.getElementById("main-containner").show();
-        document.getElementById("main-chat-row").scrollTop =
-            document.getElementById("main-chat-row").scrollHeight;
 
-        if (roomUserNumber >= 2) {
-            await socket.emit("reqTimeMusic", uid, roomID);
-        }
-        if (room.musicaAtual.link && roomUserNumber == 0) {
+document.getElementById("click-button-continuar").addEventListener("click", async () => {
+    document.getElementById("click-containner").hide();
+    document.getElementById("main-containner").show();
+    document.getElementById("main-chat-row").scrollTop = document.getElementById("main-chat-row").scrollHeight;
+    if (roomUserNumber >= 1) {
+        reqMusicsArr = []
+        await socket.emit("reqTimeMusic", uid, roomID, socket.id);
+    }else{
+        if (Object.keys(room.musicaAtual).length > 0) {
             addCurrentMusic({
                 linkInfos: {
                     banda: room.musicaAtual.banda,
@@ -70,7 +69,9 @@ document
                 },
             });
         }
-    });
+    }
+    
+});
 
 document.getElementById("leaveRoom").addEventListener("click", () => {
     socket.emit("leaveRoom", { roomID: roomID, uid: uid });
@@ -160,18 +161,42 @@ function enviarMensagem() {
     });
 }
 
-function addCurrentMusic(data) {
-    currentMusicTitle.innerText = data.linkInfos.musica;
-    currentMusicBanda.innerText = data.linkInfos.banda;
-    currentMusicPic.src = data.linkInfos.thumbnail;
-    currentMusicContent.setAttribute("data-index", data.linkInfos.index);
+async function addCurrentMusic(data) {
+    try {
+        console.log(data);
+        currentMusicTitle.innerText = data.linkInfos.musica;
+        currentMusicBanda.innerText = data.linkInfos.banda;
+        currentMusicPic.src = data.linkInfos.thumbnail;
+        currentMusicContent.setAttribute("data-index", data.linkInfos.index);
 
-    audioTag.src = data.linkInfos.link;
+        audioTag.src = await data.linkInfos.link;
+        audioTag.currentTime = await data.currentTime ? data.currentTime : 0
 
-    audioTag.play();
+        audioTag.play().then(()=>{
+        }).catch(async(err)=>{
 
-    document.getElementById("options-button-pause-music").show();
-    document.getElementById("options-button-play-music").hide();
+            if (err.message.includes('no supported source')) {
+                mensageNotify('Houve um erro ao reproduzir a música, vamos recarregá-la para você aguarde alguns segundos!')
+                if (data.hasOwnProperty('linkInfos')) {
+                    if (data.linkInfos.hasOwnProperty('musica')) {
+                        let findM = (data.linkInfos.banda == null || data.linkInfos.banda == undefined ? '' : data.linkInfos.banda) + ' ' + (data.linkInfos.musica == null || data.linkInfos.musica == undefined ? '' : data.linkInfos.musica)
+
+                        socket.emit('refreshMusic',{
+                            userSocket: socket.id,
+                            userUID:uid,
+                            findMusic: findM,
+                            room: roomID
+                        })
+                    }
+                }
+            }
+        });
+
+        document.getElementById("options-button-pause-music").show();
+        document.getElementById("options-button-play-music").hide();
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 // controla o volume do audio
@@ -301,9 +326,11 @@ socket.on("reqVote", (data) => {
 });
 
 socket.on("resultVote", (data, result) => {
+    console.log(data,result);
     if (result == true) {
         openVote = false;
         socket.emit("getCommand", data);
+        document.getElementById('main-chat-row').removeChild(document.getElementById('main-chat-vote-col'))
     }else{
         document.getElementById('main-chat-vote-votes-number').innerText = data.numberVotes
     }
@@ -317,16 +344,33 @@ document.getElementById("options-button-pause-music").addEventListener("click", 
         }
     });
 
-document.getElementById("options-button-play-music").addEventListener("click", async () => {
-        if (roomUserNumber <= 1 && audioTag.src) {
-            audioTag.play();
 
-            document.getElementById("options-button-pause-music").show();
-            document.getElementById("options-button-play-music").hide();
-            return;
-        }
-        await socket.emit("reqTimeMusic", uid, roomID);
-    });
+document.getElementById("options-button-play-music").addEventListener("click", async () => {
+    if (roomUserNumber <= 0 && audioTag.src) {
+        audioTag.play().then(()=>{
+            
+        }).catch((err)=>{
+            if (err == 'DOMException: Failed to load because no supported source was found.') {
+                if (data.hasOwnProperty('linkInfos')) {
+                    if (data.linkInfos.hasOwnProperty('musica')) {
+                        socket.emit('refreshMusic',{
+                            userSocket: socket.id,
+                            userUID:uid,
+                            findMusic: data.linkInfos.musica != null ? data.linkInfos.musica : "" + data.linkInfos.banda != null ? data.linkInfos.banda : '' ,
+                            room: roomID
+                        })
+                    }
+                }
+            }
+        });
+
+        document.getElementById("options-button-pause-music").show();
+        document.getElementById("options-button-play-music").hide();
+        return;
+    }
+    reqMusicsArr = []
+    await socket.emit("reqTimeMusic", uid, roomID,socket.id);
+});
 
 function clearMusic() {
     document.getElementById("audioTag").src = "";
@@ -548,25 +592,40 @@ socket.on("TimeMusicGet", async (data) => {
     if (data.user != uid) {
         return;
     }
-    if (data.user == uid && data.currentTime) {
-        addCurrentMusic(data);
-        audioTag.currentTime = data.currentTime;
-    }
-    if ((data.data == null && room.musicaAtual.link) || roomUserNumber <= 1) {
-        addCurrentMusic({
-            linkInfos: {
-                banda: room.musicaAtual.banda,
-                musica: room.musicaAtual.musica,
-                thumbnail: room.musicaAtual.thumbnail,
-                link: room.musicaAtual.link,
-            },
-        });
-        return;
+    reqMusicsArr.push(data)
+    if (roomUserNumber == reqMusicsArr.length) {
+        let musicEsc = null
+        reqMusicsArr.forEach((element,index)=>{
+            if (element.linkInfos !== null || element.linkInfos !== undefined) {
+                musicEsc = element
+            }
+        })
+        if (musicEsc == null || musicEsc == undefined) {
+            if (Object.keys(room.musicaAtual).length > 0) {
+                addCurrentMusic({
+                    linkInfos: {
+                        banda: room.musicaAtual.banda,
+                        musica: room.musicaAtual.musica,
+                        thumbnail: room.musicaAtual.thumbnail,
+                        link: room.musicaAtual.link,
+                    },
+                });
+                return
+            }
+        }else{
+            if (musicEsc.linkInfos.musica !== undefined ) {
+                addCurrentMusic(musicEsc);
+            }
+        }
     }
 });
 
-socket.on("TimeMusicPost", (user, room) => {
+socket.on("TimeMusicPost", (user, room,socketID) => {
+    if (user == uid) {
+        return
+    }
     if (audioTag.src || (!audioTag.paused && user != uid)) {
+        console.log(audioTag.src == undefined);
         socket.emit("resTimeMusic", {
             user: user,
             room: room,
@@ -577,9 +636,10 @@ socket.on("TimeMusicPost", (user, room) => {
                 banda: currentMusicBanda.textContent,
                 thumbnail: currentMusicPic.src,
             },
+            socketID:socketID
         });
     } else {
-        socket.emit("resTimeMusic", { user: user, room: room, data: null });
+        socket.emit("resTimeMusic", { user: user, room: room,currentTime:null, linkInfos: null,socketID:socketID });
     }
 });
 
@@ -638,6 +698,11 @@ socket.on("getMuiscPlaylist", (data) => {
 socket.on("receiveCommand", async (data) => {
     switch (data.command) {
         case "/play":
+            if (data.typeResult == 'fullPlay') {
+                addCurrentMusic(data);
+                successNotify("Musica Iniciada");
+                return
+            }
             if (data.typeResult == "play") {
                 addCurrentMusic(data);
                 successNotify("Musica Iniciada");
@@ -714,7 +779,7 @@ socket.on("receiveCommand", async (data) => {
                             .removeChild(document.getElementById("main-chat-vote-col"));
                     }
                     document.getElementById("queue-row").innerHTML = "";
-                    console.log(data.other.index);
+                    
                     let newArrayQueue = [];
                     let indexArray = 0;
                     await roomQueue.forEach(async (element, index) => {
@@ -754,6 +819,7 @@ socket.on("receiveCommand", async (data) => {
                     });
                     roomQueue = newArrayQueue;
                     clearMusic();
+                    document.getElementById('main-chat-row').removeChild(document.getElementById('main-chat-vote-col'))
                     successNotify("Musica Atual Apagada");
                     break;
                 case "apagar a fila de reprodução":
@@ -761,6 +827,8 @@ socket.on("receiveCommand", async (data) => {
                     indexMusic = 1;
                     document.getElementById("queue-row").innerHTML = "";
                     clearMusic();
+                    openVote = false;
+                    document.getElementById('main-chat-row').removeChild(document.getElementById('main-chat-vote-col'))
                     successNotify("File de reprodução Apagada");
                     break;
             }
