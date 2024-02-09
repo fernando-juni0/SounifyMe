@@ -1,6 +1,6 @@
 <style>
     #googleLogin{
-        width: fit-content;
+        width: 15em;
         height: fit-content;
         display: flex;
         justify-content: center;
@@ -13,6 +13,8 @@
         background-color: var(--secundary-color);
         cursor: pointer;
         transition: 1s;
+        -webkit-animation-fill-mode: forwards;
+        animation-fill-mode: forwards;
     }
     #googleLogo {
         margin-right: 1em;
@@ -37,6 +39,15 @@
         color: var(--color-text-primary);
         font: 600 1em 'Inter', sans-serif;
     }
+    @keyframes buttonAnimation {
+        from {
+            width: 15em;
+        }
+
+        to {
+            width: 3.6em;
+        }
+    }
 </style>
 <div id="googleLogin">
     <div id="googleLogo">
@@ -58,6 +69,7 @@
         document.getElementById('googleTitle').style.opacity = '0'
     },6000)
     setTimeout(()=>{
+        document.getElementById('googleLogin').style.animation = "buttonAnimation 1s forwards"
         document.getElementById('googleTitle').hide()
         document.getElementById('googleLogo').style.marginRight = '0'
     },6500)

@@ -44,15 +44,21 @@ try {
         },
         findOne: async (props)=>{
 
-            let firebaseData = await db.collection(props.colecao).get()
+            let firebaseData = await db.collection(props.colecao).get().then((res)=>{return res}).catch((error) => {
+                console.error('Erro ao buscar dados do Firestore:', error);
+            });
             if (props.doc) {
                 return model(props, firebaseData).then((res)=>{
                     let findItem = res.find(({doc})=>doc == props.doc)
                     return findItem
-                })
+                }).catch((error) => {
+                    console.error('Erro ao buscar dados do Firestore:', error);
+                });
             }
             if (props.where) {
-                let firebaseDataWhere = await db.collection(props.colecao).where(props.where[0],props.where[1],props.where[2]).get()
+                let firebaseDataWhere = await db.collection(props.colecao).where(props.where[0],props.where[1],props.where[2]).get().then((res)=>{return res}).catch((error) => {
+                    console.error('Erro ao buscar dados do Firestore:', error);
+                });
                 let data = await model(props,firebaseDataWhere)
                 return data[0]
             }

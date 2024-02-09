@@ -55,13 +55,17 @@ try {
     
     module.exports = {
         resetPass: async (email)=>{
-            sendPasswordResetEmail(auth,email).then(() => {
-              // E-mail de redefinição de senha enviado com sucesso
-              console.log('E-mail de redefinição de senha enviado!');
-              // Instrua o usuário a verificar o e-mail para redefinir a senha
+            return sendPasswordResetEmail(auth,email).then(() => {
+                return {
+                    success:true,
+                    mensage:'E-mail de redefinição de senha enviado!'
+                }
+
             }).catch((error) => {
-              // Tratar erros ao enviar o e-mail de redefinição de senha
-              console.error('Erro ao enviar o e-mail de redefinição de senha:', error);
+                return {
+                    success:false,
+                    mensage:`Erro ao enviar o e-mail de redefinição de senha verifique se o email esta correto ou atualize a pagina!`
+                } 
             });
         },
         googleLogin: async (req,res)=>{

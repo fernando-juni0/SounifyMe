@@ -238,12 +238,17 @@ app.get('/404/:type',(req,res)=>{
     res.render('NotFoundPage',{type:req.params.type})
 })
 
+app.get('/playlist/:playlistId',(req,res)=>{
+    db.findOne()
+})
+
 
 //TODO-----------------POST--------------------
 
 
-app.post('/auth/reset/pass',(req,res)=>{
-    authentication.resetPass(req.body.email)
+app.post('/auth/reset/pass',async(req,res)=>{
+    let returnReset = await authentication.resetPass(req.body.email)
+    res.status(200).json(returnReset)
 })
 
 
