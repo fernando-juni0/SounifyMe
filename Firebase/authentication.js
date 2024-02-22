@@ -38,7 +38,6 @@ try {
                         type: 'color',
                         content: '7000FF'
                     },
-                    playlist: [],
                     folowInfo:{
                         seguidores: [],
                         seguindo: []

@@ -37,15 +37,20 @@ try {
             }
         },
         removeArrayEmpty: (array)=>{
-            var arrayFilter = array.filter(function(elemento) {
-                return elemento !== '' && elemento !== null && elemento !== undefined;
-            });
-            
-            var index = array.indexOf('');
-            if (index > -1) {
-              array.splice(index, 1);
+            if (array != undefined) {
+                var arrayFilter = array.filter(function(elemento) {
+                    return elemento !== '' && elemento !== null && elemento !== undefined;
+                });
+                
+                var index = array.indexOf('');
+                if (index > -1) {
+                  array.splice(index, 1);
+                }
+                return arrayFilter
+            }else{
+                return []
             }
-            return arrayFilter
+
         },
         numberFormater: (array)=>{
             // -----
@@ -136,7 +141,6 @@ try {
         },
         userModel: async (result,removeArrayEmpty)=>{
             let seguindo = removeArrayEmpty(result.folowInfo.seguindo)
-            let playlist = removeArrayEmpty(result.playlist)
             let seguidores = removeArrayEmpty(result.folowInfo.seguidores)
             return {
                 uid: result.uid,
@@ -149,8 +153,8 @@ try {
                     seguindo,
                     seguidores
                 },
-                playlist: playlist,
-                playlistString: JSON.stringify(playlist),
+                playlist: result.subcollections && result.subcollections.playlist ? result.subcollections.playlist : [],
+                playlistString: JSON.stringify(result.subcollections && result.subcollections.playlist ? result.subcollections.playlist : []),
                 joinroom:result.joinroom,
                 myNots: result.myNots ? result.myNots : null,
                 invsPendente:result.invsPendente ? result.invsPendente : null,
