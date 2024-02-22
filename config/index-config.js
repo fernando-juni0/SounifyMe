@@ -14,7 +14,7 @@ module.exports = {
     serviceAccount: serviceAccount,
     firebaseConfig:firebaseConfig,
     lastFmKey: process.env.LASTFMKEY,
-    spotifyClientId: process.env.spotifyClientId,
-    spotifyClientSecret:process.env.spotifyClientSecret,
-    googleYoutubeToken: process.env.googleYoutubeToken
+    spotifyClientId:  process.env.SPOTIFYCLIENTID,
+    spotifyClientSecret: process.env.SPOTIFYCLIENTSECRET,
+    googleYoutubeToken: process.env.GOOGLEYOUTUBETOKEN
 }

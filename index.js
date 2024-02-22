@@ -18,7 +18,7 @@ const cors = require('cors');
 const app = express();
 
 const https = require('http').createServer(app);
-const io = require('socket.io')(https);
+const io = require('socket.io')(https,{'pingTimeout': 7000, 'pingInterval': 3000});
 
 const socketManager = require('./socket.io/index-socket');
 
@@ -50,7 +50,7 @@ app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs');
 
 
-// const auth = getAuth();
+const auth = getAuth();
 
 
 //TODO Multer
@@ -124,12 +124,6 @@ app.post('/getRoom/:roomID',async(req,res)=>{
     res.status(200).json(responseData);
 })
 
-app.post('/views/createRoom',(req,res)=>{
-    let file = fs.readFileSync('./views/createRoom.ejs')
-    res.status(200).send(file)
-})
-
-
 
 
 //TODO-----------GET CONFIGS-----------------
@@ -152,7 +146,7 @@ app.get('/', (req,res)=>{
 
 
 app.get('/home', functions.isAuthenticated, async (req,res)=>{
-    await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
+    await db.findOne({colecao:'users',doc:req.session.uid},undefined,true).then(async(result)=>{
         const user = await functions.userModel(result,functions.removeArrayEmpty)
         res.render('index',{user:user})
     })
@@ -178,16 +172,16 @@ app.get('/room/:roomid',functions.isAuthenticated,async(req,res)=>{
 })
 
 app.get('/conection',functions.isAuthenticated,async(req,res)=>{
-    await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
+    await db.findOne({colecao:'users',doc:req.session.uid},undefined,true).then(async(result)=>{
         const user = await functions.userModel(result,functions.removeArrayEmpty)
         let rooms = await db.findAll({colecao:'Conections'})
         res.render('conection',{user:user,rooms:rooms,createRoom:req.query.createRoom })
     })
 
 })
+
 app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
-    await db.findOne({colecao:'users',doc:req.session.uid}).then(async(result)=>{
-       
+    await db.findOne({colecao:'users',doc:req.session.uid},undefined,true).then(async(result)=>{
         let seguindo = await functions.removeArrayEmpty(result.folowInfo.seguindo)
         var isFolow = null
         let isMyProfile = result.uid == req.params.uid ? true : false
@@ -204,12 +198,12 @@ app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
         if (isMyProfile == true) {
             userProfile = myUser
         }else{
-            await db.findOne({colecao:'users',doc:req.params.uid }).then( async(result1)=>{
+            await db.findOne({colecao:'users',doc:req.params.uid },undefined,true).then( async(result1)=>{
                 if (result1 == undefined || result1.blockedUsers.includes(result.uid)) {
                     res.redirect('/404/profile')
                     return
                 }
-                let playlist = await functions.removeArrayEmpty(result1.playlist)
+                
                 let seguidores = await functions.removeArrayEmpty(result1.folowInfo.seguidores)
                 let seguindo = await functions.removeArrayEmpty(result1.folowInfo.seguindo)
                 userProfile = {
@@ -223,7 +217,7 @@ app.get('/user/:uid',functions.isAuthenticated, async(req,res)=>{
                         seguindo,
                         seguidores
                     },
-                    playlist: playlist,
+                    playlist: result1.subcollections && result1.subcollections.playlist ? result1.subcollections.playlist : [],
                     isMyProfile: isMyProfile,
                     isFolow: isFolow == true ? true : false,
                     userBockeds: result1.userBockeds,
@@ -244,12 +238,22 @@ app.get('/404/:type',(req,res)=>{
     res.render('NotFoundPage',{type:req.params.type})
 })
 
+app.get('/playlist/:playlistId',functions.isAuthenticated,async(req,res)=>{
+    const user = await functions.userModel(await db.findOne({colecao:'users',doc:req.session.uid},undefined,true),functions.removeArrayEmpty)
+    let playlistData = await db.findColGroup('playlist',req.params.playlistId)
+    if (user && playlistData) {
+        res.render('playlist',{user:user,playlistData:playlistData})
+    }
+})
+
+
 
 //TODO-----------------POST--------------------
 
 
-app.post('/auth/reset/pass',(req,res)=>{
-    authentication.resetPass(req.body.email)
+app.post('/auth/reset/pass',async(req,res)=>{
+    let returnReset = await authentication.resetPass(req.body.email)
+    res.status(200).json(returnReset)
 })
 
 
@@ -262,9 +266,9 @@ app.post('/auth/Google', async (req,res)=>{
 app.post('/auth/email', async (req,res)=>{
     fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
         if (signInMethods.length > 0) {
-            // if (signInMethods == "google.com") {
-            //     return res.redirect('/auth/Google/login')
-            // }
+            if (signInMethods == "google.com") {
+                return res.redirect('/auth/Google/login')
+            }
             authentication.singInEmail(req,res)
         }else{
             authentication.singUpEmail(req,res)
@@ -275,13 +279,15 @@ app.post('/auth/email', async (req,res)=>{
 app.post('/auth/email/login', async (req,res)=>{
     fetchSignInMethodsForEmail(auth,req.body.email).then((signInMethods) => {
         if (signInMethods.length > 0) {
-            // if (signInMethods == "google.com") {
-            //     return res.redirect('/auth/Google/login')
-            // }
+            if (signInMethods == "google.com") {
+                return res.redirect('/auth/Google/login')
+            }
             authentication.singInEmail(req,res)
         }else{
             return res.redirect('/login?login=false&exist=false')
         }
+    }).catch((err)=>{
+        console.log(err);
     })
 })
 
@@ -576,17 +582,17 @@ app.post('/createPlaylist/:uid', async(req,res)=>{
     var responseData = {}
     const codigo = require('crypto').randomBytes(16).toString('hex');
     let upPlaylist = {
+        playlistUser:uid,
         playlistUID: codigo,
         playlistName: "Playlist " + req.body.numberPlaylist,
         playlistMusics: [],
         playlistImg: "https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png"
     }
-    let user = await db.findOne({colecao:'users',doc:uid})
-    await db.update('users',uid, {
-        playlist: [
-            upPlaylist
-        ].concat(user.playlist)
+    db.create('users',uid,upPlaylist,{
+        colecao:'playlist',
+        doc:codigo
     })
+
     responseData.success = true
     responseData.newPlaylist = upPlaylist
     res.status(200).json(responseData);
@@ -879,12 +885,21 @@ app.post('/desfFriend',async(req,res)=>{
 })
 
 
-app.post('/getRoom',async(req,res)=>{
-    let rooms = await db.findAll({colecao:'Conections'})
-    res.status(200).json({
-        success:true,
-        data:rooms
-    })
+app.post('/getRoom/:id?',async(req,res)=>{
+    if (req.params.id) {
+        let room = await db.findOne({colecao:'Conections',doc:req.params.id})
+        res.status(200).json({
+            success:true,
+            data:room
+        })
+    }else{
+        let rooms = await db.findAll({colecao:'Conections'})
+        res.status(200).json({
+            success:true,
+            data:rooms
+        })
+    }
+    
 })
 
 app.post('/verifyRoom', async(req,res)=>{
@@ -925,12 +940,17 @@ app.get('/test',(req,res)=>{
 })
 
 
+app.post('/stateUser/:user/:state',(req,res)=>{
+    console.log(req.params);
+    res.sendStatus(200)
+})
+
+
 
 
 app.use((req, res, next) => {
     res.status(404).render('NotFoundPage.ejs',{type:null})
 });
-
 
 //TODO SERVER
 https.listen(configs.port,()=>{

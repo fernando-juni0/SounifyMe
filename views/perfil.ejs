@@ -9,7 +9,7 @@
     <div id="body-containner">
         <%- include('./reusable/reload.ejs') %>
         <div id="containner">
-            <%- include('./reusable/header.ejs',{banda:user.banda, index:null,perfil:{nome:user.displayName,profileImg:user.profilePic == null ? "../public/img/logo_icon.png" : user.profilePic} }) %>
+            <%- include('./reusable/header.ejs',{banda:user.banda, index:null,perfil:{nome:user.displayName,profileImg:user.profilePic == null ? "https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png" : user.profilePic} }) %>
             
             <div id="folow-info-popup-containner" style="display: none;" >
                 <div id="close-popup-out"></div>
@@ -197,7 +197,7 @@
                                         <div class="library-col-containner">
                                             <div class="library-col">
                                                 <div class="library-col-img-containner">
-                                                    <img src="../public/img/exempleImg.jpg" alt="" class="library-col-img">
+                                                    <img src="https://res.cloudinary.com/dgcnfudya/image/upload/v1690939381/isjslkzdlkswe9pcnrn4.jpg" alt="" class="library-col-img">
                                                 </div>
                                                 <div class="library-col-desc-containner">
                                                     <div class="library-col-desc-title">

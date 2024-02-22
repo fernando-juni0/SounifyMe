@@ -450,6 +450,94 @@ main{
     color: rgb(253, 93, 93);
     font: 600 1em 'inter';
 }
+
+#reset-pass-containner{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100000000000;
+    #close-reset-pass{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        background-color: var(--primary-color-opacity);
+    }
+    #reset-pass-content{
+        z-index: 9999999999999;
+        width: clamp(20em,26em,30em);
+        padding: 1em;
+        height: clamp(6em,10em,14em);
+        background-color: var(--purpple-low-color)   ;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 1em;
+        border-radius: 10px;
+        #reset-pass-top-content{
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
+            #reset-pass-title{
+                color: var(--tertiary-color);
+                font-size: 1.5em;
+                font-family: 'inter',sans-serif;
+                flex: 1;
+            }
+            #close-reset-pass-button{
+                cursor: pointer;
+                width: 2em;
+                height: 2em;
+                transition: 0.7s;
+                &:hover{
+                    transition: 0.7s;
+                    opacity: 0.8;
+                }
+                #path-reset-pass{
+                    fill: var(--primary-color);
+                    
+                    
+                }
+            }
+        }
+        
+        #email-input-reset{
+            font-size: 1em;
+            padding: 0.5em;
+            background-color: var(--color-fill);
+            border: 1px solid var(--primary-color);
+            font-family: 'inter',sans-serif;
+            border-radius: 10px;
+            box-shadow: 0px 0px 18px 0px rgba(0, 0, 0, 0.315);
+        }
+        #send-email-reset{
+            background:transparent;
+            width: clamp(5em,8em,10em);
+            height: clamp(4em,6em,8em);
+            padding: 0.5em;
+            font-family: 'inter',sans-serif;
+            font-size: 1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.7s;
+            border: 2px solid var(--main-color-puple);
+            &:hover{
+                box-shadow: 0px 0px 18px 0px var(--main-color-puple);
+                transition: 0.7s;
+            }
+        }
+    }
+}
+
+
+
+
+
 @keyframes rotation {
     from {
         -webkit-transform: rotate(0deg);

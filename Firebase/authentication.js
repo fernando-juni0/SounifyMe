@@ -27,7 +27,7 @@ try {
                     id: idCount.userCount,
                     uid:user.uid,
                     displayName: displayNameModify,
-                    profilePic: user.photoURL == undefined || user.photoURL == null ? '../public/img/logo_icon.png' : user.photoURL,
+                    profilePic: user.photoURL == undefined || user.photoURL == null ? 'https://res.cloudinary.com/dgcnfudya/image/upload/v1689452893/j4tfvjlyp1ssspbefzg9.png' : user.photoURL,
                     email: user.email,
                     emailVerificad: user.emailVerified == undefined ? null : user.emailVerified,
                     phoneNumber: user.phoneNumber == undefined ? null : user.phoneNumber,
@@ -38,7 +38,6 @@ try {
                         type: 'color',
                         content: '7000FF'
                     },
-                    playlist: [],
                     folowInfo:{
                         seguidores: [],
                         seguindo: []
@@ -55,13 +54,17 @@ try {
     
     module.exports = {
         resetPass: async (email)=>{
-            sendPasswordResetEmail(auth,email).then(() => {
-              // E-mail de redefinição de senha enviado com sucesso
-              console.log('E-mail de redefinição de senha enviado!');
-              // Instrua o usuário a verificar o e-mail para redefinir a senha
+            return sendPasswordResetEmail(auth,email).then(() => {
+                return {
+                    success:true,
+                    mensage:'E-mail de redefinição de senha enviado!'
+                }
+
             }).catch((error) => {
-              // Tratar erros ao enviar o e-mail de redefinição de senha
-              console.error('Erro ao enviar o e-mail de redefinição de senha:', error);
+                return {
+                    success:false,
+                    mensage:`Erro ao enviar o e-mail de redefinição de senha verifique se o email esta correto ou atualize a pagina!`
+                } 
             });
         },
         googleLogin: async (req,res)=>{

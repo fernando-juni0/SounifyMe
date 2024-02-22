@@ -11,17 +11,22 @@
         <%- include('./reusable/googlePopup.ejs') %>
         <%- include('./reusable/reload.ejs') %>
        <div id="containner" >
-        <div id="reset-pass-containner" style='display:none;'>
+        <div id="reset-pass-containner" style="display: none;">
             <div id="close-reset-pass"></div>
             <div id="reset-pass-content">
-                <h1 id="reset-pass-title">Insira o email cadastrado para mudar a senha!</h1>
+                <div id="reset-pass-top-content">
+                    <h1 id="reset-pass-title">Insira o email cadastrado!</h1>
+                    <div id="close-reset-pass-button">
+                        <svg enable-background="new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path id="path-reset-pass" d="m292.2 256 109.9-109.9c10-10 10-26.2 0-36.2s-26.2-10-36.2 0l-109.9 109.9-109.9-109.9c-10-10-26.2-10-36.2 0s-10 26.2 0 36.2l109.9 109.9-109.9 109.9c-10 10-10 26.2 0 36.2 5 5 11.55 7.5 18.1 7.5s13.1-2.5 18.1-7.5l109.9-109.9 109.9 109.9c5 5 11.55 7.5 18.1 7.5s13.1-2.5 18.1-7.5c10-10 10-26.2 0-36.2z"></path></svg>
+                    </div>
+                </div>
                 <input type="text" id="email-input-reset">
                 <input type="submit" value="Enviar" id="send-email-reset">
             </div>
         </div>
         <main id="main-containner">
             <div class="containner-size" id="login-img-containner">
-                <img src="../public/img/zyro-image.png" alt="">
+                <img src="https://res.cloudinary.com/dgcnfudya/image/upload/v1690939395/qwuvoc9brcysfjoa9ie7.jpg" alt="">
             </div>
             <div class="containner-size" id="login-loader-containner">
                 <div style="display: none;" class="loader-containner">
@@ -99,7 +104,7 @@
                                 </div>
                             
                                 <div id="forgot-password-containner">
-                                    <a href="#">Esqueceu sua senha?</a>
+                                    <a href="#" id="forgot-password-button">Esqueceu sua senha?</a>
                                 </div>
                                 <div id="button-and-remember-containner">
                                     <div class="button-content">

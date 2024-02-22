@@ -2,21 +2,13 @@ try {
     const db = require('./db.js')
     const { Readable } = require('stream');
 
-    async function  model(props,firebase) {
-        let arrayData = []
-        firebase.forEach((doc)=>{
-            var data = doc.data()
-            data.doc = doc.id
-
-            arrayData.push(data)
-        })
-        return await Promise.all(arrayData);
-        
-    }
-
     module.exports = {
-        findAll: async (props)=> {
-            const firebaseData = db.collection(props.colecao);
+        findAll: async (props, subProps)=> {
+            let firebaseData = db.collection(props.colecao)
+            if (subProps != undefined) {
+                firebaseData = firebaseData.doc(props.doc).collection(subProps.colecao)
+            }
+            
             return new Promise((resolve, reject) => {
                 const outputStream = new Readable({ objectMode: true });
                 outputStream._read = () => {};
@@ -39,35 +31,96 @@ try {
                     reject(err);
                 });
             });
+        },
+    
+        findOne: async (props,subProps,returnSubs)=>{
+            let firebaseData = db.collection(props.colecao)
+            if (props.hasOwnProperty('doc')) {
+                firebaseData = firebaseData.doc(props.doc)
+            }
+            if (props.hasOwnProperty('where')) {
+                firebaseData = firebaseData.where(props.where[0],props.where[1],props.where[2])
+            }
+            if (subProps != undefined) {
+                firebaseData = firebaseData.collection(subProps.colecao).doc(subProps.doc)
+            }
             
-            // return model(props, firebaseData).then((res)=>{ return res })
-        },
-        findOne: async (props)=>{
+           
+            return await firebaseData.get().then(async(res)=>{
+                let data = await res.data()
+                if (returnSubs == true) {
+                    let subcollectionRef = await firebaseData.listCollections()
 
-            let firebaseData = await db.collection(props.colecao).get()
-            if (props.doc) {
-                return model(props, firebaseData).then((res)=>{
-                    let findItem = res.find(({doc})=>doc == props.doc)
-                    return findItem
-                })
-            }
-            if (props.where) {
-                let firebaseDataWhere = await db.collection(props.colecao).where(props.where[0],props.where[1],props.where[2]).get()
-                let data = await model(props,firebaseDataWhere)
-                return data[0]
-            }
+                    if (subcollectionRef.length > 0) {
+                        data.subcollections = {};
+                        // Iterar sobre as subcoleções
+                        for (const subcollection of subcollectionRef) {
+                            const subcollectionDocs = await subcollection.get();
+                            const subcollectionName = subcollection.id;
+                            const subcollectionData = [];
+                            subcollectionDocs.forEach(doc => {
+                                subcollectionData.push(doc.data());
+                            });
+                            data.subcollections[subcollectionName] = subcollectionData;
+                        }
+                    }
+                }
+                return data
+                
+            }).catch((error) => {
+                console.error('Erro ao buscar dados do Firestore:', error);
+            });
+            
         },
-        update: async(colecao, documento, dados)=>{
-            await db.collection(colecao).doc(documento).update(dados);
+        findColGroup: async(colecao,doc)=>{
+            return new Promise((resolve, reject) => {
+                try {
+                    const dadosRecebidos = [];
+
+                    const queryStream = db.collectionGroup(colecao).stream();
+
+                    queryStream.on('data', async (docSnapshot) => {
+                        if (docSnapshot.id == doc) {
+                            dadosRecebidos.push(docSnapshot.data());
+                        }
+                    });
+        
+                    queryStream.on('error', (error) => {
+                        console.error("Erro ao buscar documentos:", error);
+                        reject(error);
+                    });
+        
+                    queryStream.on('end', () => {
+                        resolve(dadosRecebidos[0]);
+                    });
+                } catch (error) {
+                    console.error("Erro ao buscar documentos:", error);
+                    reject(error);
+                }
+            });
+        },
+        update: async(colecao, doc, data,subProps)=>{
+            let firebaseData = db.collection(colecao).doc(doc)
+            if (subProps != undefined) {
+                firebaseData = firebaseData.collection(subProps.colecao).doc(subProps.doc)
+            }
+            await firebaseData.update(data);
             return 
         },
-        delete: async(colecao, documento)=>{
-            await db.collection(colecao).doc(documento).delete();
+        delete: async(colecao, doc,subProps)=>{
+            let firebaseData = db.collection(colecao).doc(doc)
+            if (subProps != undefined) {
+                firebaseData = firebaseData.collection(subProps.colecao).doc(subProps.doc)
+            }
+            await firebaseData.delete();
             return
         },
-        create: async (colecao,name,dados)=> {
-            const firebaseData = db.collection(colecao).doc(name);
-            await firebaseData.set(dados);
+        create: async (colecao,doc,data,subProps)=> {
+            let firebaseData = db.collection(colecao).doc(doc)
+            if (subProps != undefined) {
+                firebaseData = firebaseData.collection(subProps.colecao).doc(subProps.doc)
+            }
+            await firebaseData.set(data);
             return
         }    
     }

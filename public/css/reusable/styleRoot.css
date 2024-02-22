@@ -46,7 +46,7 @@
     
 }
 
-path:not(.notFill),rect,g{
+path:not(.notFill),rect:not(.notFill),g:not(.notFill){
     fill: var(--color-fill);
 }
 

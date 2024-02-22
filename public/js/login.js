@@ -94,12 +94,10 @@ document.getElementById('emailFormCadastro').addEventListener('submit',(e)=>{
             return false
         }
         if (password.trim() === '') {
-            console.log(1);
             mensage.innerText = 'Digite uma senha!'
             return false
         }
         if (termos.checked == false) {
-            console.log(1);
             mensage.innerText = 'Aceite os termos de uso para continuar!'
             return false
         }
@@ -348,4 +346,44 @@ document.getElementById('passHideLogin').addEventListener('click',()=>{
         document.querySelector('#passHideLogin img').src = '../public/assets/svg/visibility_FILL0_wght400_GRAD0_opsz48.svg'
         document.getElementById('senhaLogin').setAttribute('type','password')
     }
+})
+
+
+
+
+document.getElementById('close-reset-pass-button').addEventListener('click',()=>{
+    document.getElementById('reset-pass-containner').hide()
+})
+document.getElementById('close-reset-pass').addEventListener('click',()=>{
+    document.getElementById('reset-pass-containner').hide()
+})
+document.getElementById('forgot-password-button').addEventListener('click',()=>{
+    document.getElementById('reset-pass-containner').show('flex')
+})
+
+document.getElementById('send-email-reset').addEventListener('click',()=>{
+    
+    $.ajax({
+        traditional: true,
+        url: '/auth/reset/pass',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify( {
+            email:document.getElementById('email-input-reset').value
+        } ),
+        dataType: 'json',
+        success: function(response) {
+            document.getElementById('email-input-reset').value = ''
+            if (response.success == true) {
+                document.getElementById('reset-pass-containner').hide()
+                successNotify(response.mensage)
+            }else{
+                errorNotify(response.mensage)
+            }
+            
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+        }
+    })
 })
