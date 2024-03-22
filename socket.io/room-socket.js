@@ -42,28 +42,22 @@ module.exports.index = async (io, socket)=>{
         })
         if (!musicData.hasOwnProperty('erro')) {
             db.findOne({colecao:'Conections',doc:data.room}).then(async(res)=>{
-                let reqNewQueue = ()=>{
-                    return new Promise((resolve,reject)=>{
-                        res.queue.forEach((element,index,arr)=>{
-                            if (element.musica == musicData.musica && element.banda == musicData.banda) {
-                                element.link = musicData.link
-                                resolve(res.queue)
-                            }else{
-                                reject('elemento nao encontrado')
-                            }
-                        })
-                    })
-                }
-                let newQueue = await reqNewQueue()
-                console.log(newQueue);
-
+                await res.queue.forEach((element,index,arr)=>{
+                    if (element.musica == musicData.musica && element.banda == musicData.banda) {
+                        element.link = musicData.link
+                    }
+                })
                 db.update('Conections',data.room,{
                     musicaAtual:musicData,
-                    queue: newQueue
+                    queue: res.queue
                 })
                 io.to(data.userSocket).emit('receiveCommand', {typeResult:'fullPlay',command:'/play',user:data.userUID, date:'null', queueIndex:'null',linkInfos:musicData});
-            })
+
+                
+            }).catch((err)=>{console.log(err);})
             
+        }else{
+            io.to(data.room).emit('Reqerror', {erroType:'findMusic',errorText:musicData.erro});
         }
     })
 

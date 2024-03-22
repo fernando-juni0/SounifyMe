@@ -37,7 +37,7 @@ try {
             }
         },
         removeArrayEmpty: (array)=>{
-            if (array != undefined) {
+            if (Array.isArray(array)) {
                 var arrayFilter = array.filter(function(elemento) {
                     return elemento !== '' && elemento !== null && elemento !== undefined;
                 });

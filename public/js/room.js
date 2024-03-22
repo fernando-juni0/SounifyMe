@@ -699,7 +699,7 @@ socket.on("receiveCommand", async (data) => {
     switch (data.command) {
         case "/play":
             if (data.typeResult == 'fullPlay') {
-                addCurrentMusic(data);
+                await addCurrentMusic(data);
                 successNotify("Musica Iniciada");
                 return
             }
